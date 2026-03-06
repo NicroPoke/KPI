@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kpi-fiblib-example"
+version = "0.1.0"
+description = "Example project showing how to use kpi-fiblib"
+requires-python = ">=3.10"
+authors = [
+  { name = "Ivan Shevchuk" }
+]
+license = { text = "MIT" }
+
+[project.scripts]
+fiblib-example = "main:main"
