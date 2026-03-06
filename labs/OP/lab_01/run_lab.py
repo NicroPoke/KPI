@@ -1,9 +1,9 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "fiblib" / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
 
-from kpi_fiblib import consume_with_timeout, fibonacci_generator
+from library import consume_with_timeout, fibonacci_generator
 
 
 if __name__ == "__main__":
