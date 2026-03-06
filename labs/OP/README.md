@@ -1,4 +1,4 @@
-# Fundamentals of Programming — Ivan Shevchuk
+# OP — Ivan Shevchuk
 
 This folder stores all laboratory works for the course.
 
