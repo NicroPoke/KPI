@@ -1,0 +1,73 @@
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #17212b;
+  background: radial-gradient(circle at top, #e8f2ff 0%, #f7fbff 40%, #ffffff 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.layout {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.card {
+  width: min(560px, 100%);
+  background: #ffffff;
+  border: 1px solid #dce8f6;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 12px 30px rgba(28, 72, 118, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badge {
+  margin: 0;
+  color: #2f6cad;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+h1 {
+  margin: auto;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  justify-content: center;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0 0 1.25rem;
+  color: #4d5f72;
+}
+
+button {
+  justify-content: center;
+  text-align: center;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2f6cad, #4d8fd5);
+  color: #ffffff;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
