@@ -1,0 +1,26 @@
+{
+  "name": "rainywiki",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "RainyWiki: basic Vue application",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "vite",
+    "rainywiki"
+  ],
+  "author": "Ivan Shevchuk",
+  "license": "MIT",
+  "dependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@vitejs/plugin-vue": "^5.1.0"
+  }
+}
