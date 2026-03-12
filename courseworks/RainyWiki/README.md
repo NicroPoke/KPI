@@ -1,6 +1,6 @@
-# RainyWiki — Vue Starter
+# RainyWiki
 
-Basic coursework project based on Vue.
+RainyWiki is a small WikiFandom-like coursework project built with Vue.
 
 ## Structure
 
@@ -25,3 +25,12 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## Recent Changes
+
+- `index.html` — updated page template/head setup.
+- `public/RainyWiki.png` — added site icon asset.
+- `src/App.vue` — added/updated main layout and rain effect.
+- `src/components/AppHeader.vue` — added header component.
+- `src/components/WikiArticle.vue` — added article component.
+- `src/style.css` — updated global styles.
