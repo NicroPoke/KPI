@@ -1,4 +1,23 @@
-﻿<template>
+﻿<script setup>
+defineProps({
+  activeTab: {
+    type: String,
+    default: 'article',
+  },
+});
+
+const emit = defineEmits(['navigate']);
+
+const goTo = (tab) => {
+  emit('navigate', tab);
+};
+
+const openRandomArticle = () => {
+  emit('navigate', 'random-article');
+};
+</script>
+
+<template>
   <header class="app-header">
     <div class="header-inner">
       <a class="logo" href="#"> 
@@ -19,13 +38,13 @@
       </div>
 
       <nav class="header-nav" aria-label="Navigation">
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" :class="{ active: activeTab === 'article' }" @click.prevent="goTo('article')">
           <strong>Main page</strong>
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" @click.prevent="openRandomArticle">
           <strong>Random article</strong>
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" class="nav-item" :class="{ active: activeTab === 'recent-changes' }" @click.prevent="goTo('recent-changes')">
           <strong>Recent changes</strong> 
         </a>
         <a href="#" class="nav-item">
@@ -124,5 +143,9 @@
 .nav-item:hover {
   background: #ede5e6;
   text-decoration: none;
+}
+
+.nav-item.active {
+  background: #dcd4d5;
 }
 </style>

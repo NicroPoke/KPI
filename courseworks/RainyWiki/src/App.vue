@@ -1,6 +1,45 @@
 ﻿<script setup>
+import { ref } from 'vue';
 import AppHeader from './components/AppHeader.vue'
 import WikiArticle from './components/WikiArticle.vue'
+import RecentChanges from './components/RecentChanges.vue'
+import articles from './data/articles.json'
+
+const activeTab = ref('article');
+const activeArticleKey = ref('rainyforecast');
+const articleKeys = Object.keys(articles);
+
+const getRandomArticleKey = () => {
+  if (articleKeys.length <= 1) {
+    return articleKeys[0] ?? 'rainyforecast';
+  }
+
+  const availableKeys = articleKeys.filter((key) => key !== activeArticleKey.value);
+  const randomIndex = Math.floor(Math.random() * availableKeys.length);
+  return availableKeys[randomIndex];
+};
+
+const handleNavigate = (tab) => {
+  if (tab === 'random-article') {
+    activeArticleKey.value = getRandomArticleKey();
+    activeTab.value = 'article';
+    return;
+  }
+
+  activeTab.value = tab;
+  if (tab === 'article' && !articles[activeArticleKey.value]) {
+    activeArticleKey.value = 'rainyforecast';
+  }
+};
+
+const handleOpenArticle = (articleKey) => {
+  if (!articles[articleKey]) {
+    return;
+  }
+
+  activeTab.value = 'article';
+  activeArticleKey.value = articleKey;
+};
 
 const rainDrops = Array.from({ length: 67 }, (_, index) => {
   const left = (index * 4.9) % 100
@@ -42,10 +81,15 @@ const rainDrops = Array.from({ length: 67 }, (_, index) => {
         }"
       >/</span>
     </div>
-    <AppHeader />
+    <AppHeader :active-tab="activeTab" @navigate="handleNavigate" />
     <div class="page-body">
       <main class="page-main">
-        <WikiArticle />
+        <WikiArticle
+          v-if="activeTab === 'article'"
+          :article="articles[activeArticleKey]"
+          @open-article="handleOpenArticle"
+        />
+        <RecentChanges v-else-if="activeTab === 'recent-changes'" />
       </main>
     </div>
   </div>

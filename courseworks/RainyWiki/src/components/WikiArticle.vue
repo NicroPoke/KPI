@@ -1,114 +1,223 @@
 ﻿<script setup>
+import { computed } from 'vue';
+
 const pageViews = 0;
-const lastEdited = '1 January 1970';
+const lastEdited = '15 March 2026';
+
+const props = defineProps({
+  article: {
+    type: Object,
+    default: null,
+  },
+});
+
+const emit = defineEmits(['open-article']);
+
+const defaultArticle = {
+  title: 'RainyForecast',
+  badges: ['Indie Game Studio', 'itch.io'],
+  meta: ['Platform: itch.io'],
+  infobox: {
+    title: 'RainyForecast',
+    imageSrc: '/RainyWiki.png',
+    imageAlt: 'RainyForecast logo',
+    rows: [
+      { label: 'Type', value: 'Indie game studio' },
+      { label: 'Status', value: 'Active' },
+      { label: 'Main platform', value: 'itch.io' },
+      { label: 'Focus', value: 'Multi-genre projects' },
+      { label: 'Game platforms', value: 'Windows, HTML5 (browser)' },
+      { label: 'Public channels', value: 'YouTube, Twitter/X' },
+    ],
+  },
+  lead: {
+    strong: 'RainyForecast',
+    text: ' is an indie game studio publishing projects on itch.io. The studio page features games across multiple genres, including survival, shooter, and simulation, along with links to external communication channels.',
+  },
+  sections: [
+    {
+      id: 's1',
+      title: 'Overview',
+      paragraphs: [
+        'RainyForecast is positioned as an independent studio focused on small experimental projects. Its itch.io profile is used as the main catalog for releases and demo versions.',
+        'Based on publicly available information, the studio works across multiple genres and releases both prototype builds and finished small-scale titles for Windows and browser platforms.',
+      ],
+    },
+    {
+      id: 's2',
+      title: 'Games',
+      subsections: [
+        {
+          id: 's2-1',
+          title: 'Unknown Heights [DEMO]',
+          paragraphs: [
+            'Unknown Heights [DEMO] is an early demo version of a Windows survival/horror project. The game is described as an exploration of procedurally generated floating islands inhabited by dangerous creatures. No exact release date is listed on the project page.',
+          ],
+        },
+        {
+          id: 's2-2',
+          title: 'Ghosted Away',
+          paragraphs: [
+            'Ghosted Away is an isometric Windows shooter created for Shovel Game Jam 2025. According to its description, the core mechanic revolves around capturing ghosts and using their elemental abilities. The downloadable release archive includes the date token corresponding to 20 July 2025.',
+          ],
+        },
+        {
+          id: 's2-3',
+          title: 'Freaky Golf',
+          paragraphs: [
+            'Freaky Golf is a short browser game (HTML5) in the simulation/sports genres. The project presents a sequence of levels with progressively changing "unconventional golf" mechanics. The project page lists the release date as 5 July 2025.',
+          ],
+        },
+      ],
+    },
+    {
+      id: 's3',
+      title: 'Team and Public Presence',
+      paragraphs: [
+        'The profile links these projects to RainyForecast’s collaborative development context and related creators. It also highlights external platforms used for updates and audience communication.',
+      ],
+      list: [
+        { label: 'YouTube', text: 'video publications and media materials.' },
+        { label: 'Twitter/X', text: 'short updates and announcements.' },
+        { label: 'itch.io', text: 'the primary showcase for releases and demos.' },
+      ],
+    },
+    {
+      id: 's4',
+      title: 'Portfolio Overview',
+      paragraphs: [
+        'The available RainyForecast catalog presents the studio as an independent team focused on compact multi-genre projects. The 2025 lineup includes both prototype experiments and completed game releases.',
+      ],
+    },
+  ],
+  footer: {
+    categoriesLabel: 'Categories:',
+    categories: ['Indie', 'itch.io', 'RainyForecast'],
+    viewsText: 'This page has been viewed',
+    viewsTextTail: 'times.',
+    updatedText: 'Last updated:',
+  },
+};
+
+const articleData = computed(() => props.article ?? defaultArticle);
+
+const openArticle = (articleKey) => {
+  emit('open-article', articleKey);
+};
 </script>
 
 <template>
   <article class="wiki-article">
     <div class="article-top">
-      <h1 class="article-title">Blah</h1>
+      <h1 class="article-title">{{ articleData.title }}</h1>
       <div class="article-badges">
+        <span
+          v-for="(badge, badgeIndex) in articleData.badges"
+          :key="badge"
+          class="badge"
+          :class="badgeIndex === 0 ? 'tech' : 'featured'"
+        >
+          {{ badge }}
+        </span>
       </div>
       <div class="article-meta">
+        <template v-for="(metaItem, metaIndex) in articleData.meta" :key="metaItem">
+          <span>{{ metaItem }}</span>
+          <span v-if="metaIndex < articleData.meta.length - 1" class="meta-sep">•</span>
+        </template>
       </div>
     </div>
 
     <aside class="infobox">
-      <div class="infobox-title">Blah</div>
+      <div class="infobox-title">{{ articleData.infobox.title }}</div>
       <div class="infobox-img">
-        <div class="img-placeholder">[ Logo ]</div>
+        <img class="infobox-logo" :src="articleData.infobox.imageSrc" :alt="articleData.infobox.imageAlt" />
       </div>
       <table class="infobox-table">
         <tbody>
-          <tr><th>Type</th><td>Blah</td></tr>
-          <tr><th>Released</th><td>Blah</td></tr>
-          <tr><th>Ability</th><td>Blah</td></tr>
-          <tr><th>Locations</th><td>Blah</td></tr>
+          <tr v-for="row in articleData.infobox.rows" :key="row.label">
+            <th>{{ row.label }}</th>
+            <td>{{ row.value }}</td>
+          </tr>
         </tbody>
       </table>
     </aside>
 
     <p class="article-lead">
-      <strong>Blahblahblah</strong> blahblahblah blahblahblah blahblahblah blahblahblah
-      blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-      blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
+      <strong>{{ articleData.lead.strong }}</strong>{{ articleData.lead.text }}
     </p>
 
     <nav class="toc">
       <div class="toc-header">Contents</div>
       <ol class="toc-list">
-        <li><a href="#s1">Blahblahblah</a></li>
-        <li>
-          <a href="#s2">Blahblahblah</a>
-          <ol>
-            <li><a href="#s2-1">Blahblahblah blahblahblah</a></li>
-            <li><a href="#s2-2">Blahblahblah blahblahblah</a></li>
+        <li v-for="(section, sectionIndex) in articleData.sections" :key="section.id">
+          <a :href="`#${section.id}`">{{ sectionIndex + 1 }}. {{ section.title }}</a>
+          <ol v-if="section.subsections?.length">
+            <li v-for="(subsection, subsectionIndex) in section.subsections" :key="subsection.id">
+              <a :href="`#${subsection.id}`">{{ sectionIndex + 1 }}.{{ subsectionIndex + 1 }} {{ subsection.title }}</a>
+            </li>
           </ol>
         </li>
-        <li><a href="#s3">Blahblahblah</a></li>
-        <li><a href="#s4">Blahblahblah</a></li>
-        <li><a href="#s5">Blahblahblah</a></li>
       </ol>
     </nav>
 
-    <section class="article-section" id="s1">
-      <h2>1. Blahblahblah</h2>
-      <p>
-        Blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-        blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
+    <section
+      v-for="(section, sectionIndex) in articleData.sections"
+      :id="section.id"
+      :key="section.id"
+      class="article-section"
+    >
+      <h2>{{ sectionIndex + 1 }}. {{ section.title }}</h2>
+      <p v-for="paragraph in section.paragraphs" :key="paragraph">
+        {{ paragraph }}
       </p>
-      <p>
-        Blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-        blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
-      </p>
-    </section>
 
-    <section class="article-section" id="s2">
-      <h2>2. Blahblahblah</h2>
-      <h3 id="s2-1">2.1 Blahblahblah blahblahblah</h3>
-      <p>
-        Blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-        blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
-      </p>
-      <h3 id="s2-2">2.2 Blahblahblah blahblahblah</h3>
-      <p>
-        Blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-        blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
-      </p>
-    </section>
+      <template v-if="section.subsections?.length">
+        <template v-for="(subsection, subsectionIndex) in section.subsections" :key="subsection.id">
+          <h3 :id="subsection.id">{{ sectionIndex + 1 }}.{{ subsectionIndex + 1 }} {{ subsection.title }}</h3>
+          <p v-for="subParagraph in subsection.paragraphs" :key="subParagraph">
+            {{ subParagraph }}
+          </p>
+          <div v-if="subsection.links?.length" class="section-links">
+            <button
+              v-for="link in subsection.links"
+              :key="`${subsection.id}-${link.text}`"
+              class="article-link-btn"
+              type="button"
+              @click="openArticle(link.articleKey)"
+            >
+              {{ link.text }}
+            </button>
+          </div>
+        </template>
+      </template>
 
-    <section class="article-section" id="s3">
-      <h2>3. Blahblahblah</h2>
-      <p>
-        Blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah
-        blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah blahblahblah.
-      </p>
-      <ul class="article-list">
-        <li><strong>Blahblahblah</strong> — blahblahblah blahblahblah blahblahblah.</li>
-        <li><strong>Blahblahblah</strong> — blahblahblah blahblahblah <code>blahblah</code> blahblahblah.</li>
-        <li><strong>Blahblahblah</strong> — blahblahblah blahblahblah <code>blah-</code> blahblahblah.</li>
-        <li><strong>Blahblahblah</strong> — blahblahblah blahblahblah blahblahblah (blahblah).</li>
-        <li><strong>Blahblahblah</strong> — blahblahblah blahblahblah blahblahblah.</li>
+      <ul v-if="section.list?.length" class="article-list">
+        <li v-for="listItem in section.list" :key="listItem.label">
+          <strong>{{ listItem.label }}</strong> — {{ listItem.text }}
+        </li>
       </ul>
-    </section>
 
-    <section class="article-section" id="s4">
-      <h2>4. Blahblahblah</h2>
-      <p>
-        Blahblahblah blahblahblah blahblahblah: <strong>Blahblahblah</strong> blahblahblah
-        blahblahblah, <strong>Blahblahblah</strong> blahblahblah blahblahblah blahblahblah,
-        <strong>Blahblahblah</strong> blahblahblah blahblahblah blahblahblah blahblahblah.
-      </p>
+      <div v-if="section.links?.length" class="section-links">
+        <button
+          v-for="link in section.links"
+          :key="`${section.id}-${link.text}`"
+          class="article-link-btn"
+          type="button"
+          @click="openArticle(link.articleKey)"
+        >
+          {{ link.text }}
+        </button>
+      </div>
     </section>
-
     <footer class="article-footer">
       <div class="footer-cats">
-        <strong>Categories:</strong>
-        <a href="#">Blah</a>
+        <strong>{{ articleData.footer.categoriesLabel }}</strong>
+        <a v-for="category in articleData.footer.categories" :key="category" href="#">{{ category }}</a>
       </div>
       <div class="footer-bottom">
-        <span class="footer-note">This page has been viewed {{ pageViews.toLocaleString() }} times.</span>
-        <span class="footer-note">Last edited: {{ lastEdited }}.</span>
+        <span class="footer-note">{{ articleData.footer.viewsText }} {{ pageViews.toLocaleString() }} {{ articleData.footer.viewsTextTail }}</span>
+        <span class="footer-note">{{ articleData.footer.updatedText }} {{ lastEdited }}.</span>
       </div>
     </footer>
 
@@ -203,6 +312,14 @@ const lastEdited = '1 January 1970';
   color: #9e8e8f;
   font-size: 0.8rem;
 }
+.infobox-logo {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 6px;
+}
 .infobox-table {
   width: 100%;
   border-collapse: collapse;
@@ -267,7 +384,9 @@ const lastEdited = '1 January 1970';
   line-height: 1.5;
 }
 .toc-list a:hover { text-decoration: underline; }
-.article-section { clear: both; }
+.article-section {
+  clear: left;
+}
 .article-section h2 {
   font-size: 1.25rem;
   font-weight: 700;
@@ -295,6 +414,24 @@ const lastEdited = '1 January 1970';
   line-height: 1.7;
   margin-bottom: 0.3rem;
   color: #272020;
+}
+.section-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.3rem 0 0.75rem;
+}
+.article-link-btn {
+  border: 1px solid #cfc5c6;
+  background: #ede5e6;
+  color: #272020;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.article-link-btn:hover {
+  background: #dcd4d5;
 }
 .article-footer {
   clear: both;

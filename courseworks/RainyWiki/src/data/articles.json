@@ -1,0 +1,300 @@
+{
+  "rainyforecast": {
+    "title": "RainyForecast",
+    "badges": ["Indie Game Studio", "itch.io"],
+    "meta": ["Platform: itch.io"],
+    "infobox": {
+      "title": "RainyForecast",
+      "imageSrc": "/RainyWiki.png",
+      "imageAlt": "RainyForecast logo",
+      "rows": [
+        { "label": "Type", "value": "Indie game studio" },
+        { "label": "Status", "value": "Active" },
+        { "label": "Main platform", "value": "itch.io" },
+        { "label": "Focus", "value": "Multi-genre projects" },
+        { "label": "Game platforms", "value": "Windows, HTML5 (browser)" },
+        { "label": "Public channels", "value": "YouTube, Twitter/X" }
+      ]
+    },
+    "lead": {
+      "strong": "RainyForecast",
+      "text": " is an indie game studio publishing projects on itch.io. The studio page features games across multiple genres, including survival, shooter, and simulation, along with links to external communication channels."
+    },
+    "sections": [
+      {
+        "id": "s1",
+        "title": "Overview",
+        "paragraphs": [
+          "RainyForecast is positioned as an independent studio focused on small experimental projects. Its itch.io profile is used as the main catalog for releases and demo versions.",
+          "Based on publicly available information, the studio works across multiple genres and releases both prototype builds and finished small-scale titles for Windows and browser platforms."
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "Games",
+        "subsections": [
+          {
+            "id": "s2-1",
+            "title": "Unknown Heights [DEMO]",
+            "paragraphs": [
+              "Unknown Heights [DEMO] is an early demo version of a Windows survival/horror project. The game is described as an exploration of procedurally generated floating islands inhabited by dangerous creatures. No exact release date is listed on the project page."
+            ],
+            "links": [
+              {
+                "text": "Read full article: Unknown Heights",
+                "articleKey": "unknown-heights"
+              }
+            ]
+          },
+          {
+            "id": "s2-2",
+            "title": "Ghosted Away",
+            "paragraphs": [
+              "Ghosted Away is an isometric Windows shooter created for Shovel Game Jam 2025. According to its description, the core mechanic revolves around capturing ghosts and using their elemental abilities. The downloadable release archive includes the date token corresponding to 20 July 2025."
+            ],
+            "links": [
+              {
+                "text": "Read full article: Ghosted Away",
+                "articleKey": "ghosted-away"
+              }
+            ]
+          },
+          {
+            "id": "s2-3",
+            "title": "Freaky Golf",
+            "paragraphs": [
+              "Freaky Golf is a short browser game (HTML5) in the simulation/sports genres. The project presents a sequence of levels with progressively changing \"unconventional golf\" mechanics. The project page lists the release date as 5 July 2025."
+            ],
+            "links": [
+              {
+                "text": "Read full article: Freaky Golf",
+                "articleKey": "freaky-golf"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "Team and Public Presence",
+        "paragraphs": [
+          "The profile links these projects to RainyForecast’s collaborative development context and related creators. It also highlights external platforms used for updates and audience communication."
+        ],
+        "list": [
+          { "label": "YouTube", "text": "video publications and media materials." },
+          { "label": "Twitter/X", "text": "short updates and announcements." },
+          { "label": "itch.io", "text": "the primary showcase for releases and demos." }
+        ]
+      }
+    ],
+    "footer": {
+      "categoriesLabel": "Categories:",
+      "categories": ["Indie", "itch.io", "RainyForecast"],
+      "viewsText": "This page has been viewed",
+      "viewsTextTail": "times.",
+      "updatedText": "Last updated:"
+    }
+  },
+  "unknown-heights": {
+    "title": "Unknown Heights",
+    "badges": ["Survival Horror", "Demo"],
+    "meta": ["Platform: itch.io", "Build: Windows (downloadable)", "Price: Free"],
+    "infobox": {
+      "title": "Unknown Heights [DEMO]",
+      "imageSrc": "/logo.png",
+      "imageAlt": "Unknown Heights article image",
+      "rows": [
+        { "label": "Type", "value": "Video game (early demo)" },
+        { "label": "Status", "value": "Prototype" },
+        { "label": "Platform", "value": "Windows" },
+        { "label": "Genre", "value": "Survival, Horror" },
+        { "label": "Distribution", "value": "itch.io (downloadable)" },
+        { "label": "File size", "value": "UnknownHeights[DEMO].zip — 83 MB" }
+      ]
+    },
+    "lead": {
+      "strong": "Unknown Heights",
+      "text": " is a downloadable Windows survival-horror demo presented on itch.io. The project is described as an exploration-focused experience set on mysterious procedurally generated floating islands."
+    },
+    "sections": [
+      {
+        "id": "s1",
+        "title": "Overview",
+        "paragraphs": [
+          "According to its itch.io page, Unknown Heights [DEMO] is an early-stage game concept with a focus on atmospheric exploration and horror tension. The current build is marked as a prototype and is publicly available for feedback.",
+          "The project description references a co-op direction in development (not yet implemented in the demo version)."
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "Gameplay Description",
+        "paragraphs": [
+          "The player explores procedurally generated floating islands populated by dangerous creatures. The tone is survival-oriented, with movement and item interaction as core actions in the available build."
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "Release Information",
+        "paragraphs": [
+          "The itch.io page provides a downloadable demo package for Windows and labels the project as free. An explicit release date is not shown in the visible project metadata.",
+          "Available metadata includes status (Prototype), platform (Windows), and genre categorization under survival/adventure with horror-related tags."
+        ]
+      },
+      {
+        "id": "s4",
+        "title": "Relation to RainyForecast",
+        "paragraphs": [
+          "Within RainyForecast’s public portfolio context, Unknown Heights functions as an early prototype entry representing the studio’s survival-horror direction."
+        ],
+        "links": [
+          {
+            "text": "Back to article: RainyForecast",
+            "articleKey": "rainyforecast"
+          }
+        ]
+      }
+    ],
+    "footer": {
+      "categoriesLabel": "Categories:",
+      "categories": ["Unknown Heights", "Survival Horror", "itch.io"],
+      "viewsText": "This page has been viewed",
+      "viewsTextTail": "times.",
+      "updatedText": "Last updated:"
+    }
+  },
+  "ghosted-away": {
+    "title": "Ghosted Away",
+    "badges": ["Shooter", "Prototype"],
+    "meta": ["Platform: itch.io", "Build: Windows (downloadable)", "Pricing: Name your own price"],
+    "infobox": {
+      "title": "Ghosted Away",
+      "imageSrc": "/ghosted.png",
+      "imageAlt": "Ghosted Away article image",
+      "rows": [
+        { "label": "Type", "value": "Video game" },
+        { "label": "Status", "value": "Prototype" },
+        { "label": "Platform", "value": "Windows" },
+        { "label": "Genre", "value": "Shooter (isometric / top-down)" },
+        { "label": "Development context", "value": "Shovel Game Jam 2025" },
+        { "label": "Release archive", "value": "Release-20250720T235221Z-1-001.zip (67 MB)" }
+      ]
+    },
+    "lead": {
+      "strong": "Ghosted Away",
+      "text": " is a downloadable Windows isometric shooter published on itch.io. The game was created for Shovel Game Jam 2025 and centers on ghost-capturing combat mechanics."
+    },
+    "sections": [
+      {
+        "id": "s1",
+        "title": "Overview",
+        "paragraphs": [
+          "The itch.io page describes Ghosted Away as a jam project produced in 9 days, with assets and code built during development. The premise follows a new ghostbuster thrown into immediate action.",
+          "The project is currently distributed as a Windows prototype and can be downloaded with a pay-what-you-want model."
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "Gameplay",
+        "paragraphs": [
+          "Its core mechanic combines capturing ghosts and reusing their elemental properties against other enemies. Combat is presented from an isometric perspective with inventory slot management."
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "Release Information",
+        "paragraphs": [
+          "The downloadable file name includes the token Release-20250720T235221Z, corresponding to 20 July 2025. The itch.io metadata marks the game as a prototype and classifies it under shooter with tags such as top-down and arcade.",
+          "The page also credits artwork by Tezzu/Shentezzu and lists related creators under the same profile ecosystem."
+        ]
+      },
+      {
+        "id": "s4",
+        "title": "Relation to RainyForecast",
+        "paragraphs": [
+          "Within the RainyForecast portfolio context, Ghosted Away represents the studio’s action-oriented branch and short-cycle jam development format."
+        ],
+        "links": [
+          {
+            "text": "Back to article: RainyForecast",
+            "articleKey": "rainyforecast"
+          }
+        ]
+      }
+    ],
+    "footer": {
+      "categoriesLabel": "Categories:",
+      "categories": ["Ghosted Away", "Shooter", "itch.io"],
+      "viewsText": "This page has been viewed",
+      "viewsTextTail": "times.",
+      "updatedText": "Last updated:"
+    }
+  },
+  "freaky-golf": {
+    "title": "Freaky Golf",
+    "badges": ["Simulation", "Released"],
+    "meta": ["Platform: itch.io", "Build: HTML5 (browser)", "Price: Free"],
+    "infobox": {
+      "title": "Freaky Golf",
+      "imageSrc": "/fg.png",
+      "imageAlt": "Freaky Golf article image",
+      "rows": [
+        { "label": "Type", "value": "Video game" },
+        { "label": "Status", "value": "Released" },
+        { "label": "Platform", "value": "HTML5 (browser)" },
+        { "label": "Genre", "value": "Simulation, Sports" },
+        { "label": "Release date", "value": "5 July 2025" },
+        { "label": "Average session", "value": "About a half-hour" }
+      ]
+    },
+    "lead": {
+      "strong": "Freaky Golf",
+      "text": " is a browser-based simulation/sports game published on itch.io. It reframes classic golf through short-form levels that introduce progressively unusual mechanics."
+    },
+    "sections": [
+      {
+        "id": "s1",
+        "title": "Overview",
+        "paragraphs": [
+          "Freaky Golf is presented as a compact playable release with an intentionally experimental tone. The game starts from familiar golf rules and then modifies core behavior across later stages.",
+          "It is published as an HTML5 title and can be launched directly in the browser from its itch.io page."
+        ]
+      },
+      {
+        "id": "s2",
+        "title": "Level Structure and Mechanics",
+        "paragraphs": [
+          "According to the project description, the game contains 8 levels. Mechanics escalate from standard golf to randomized power swings, speed-focused play, and cube-ball physics changes.",
+          "The page labels the current build as a short but intense demo-like experience with several planned mechanics removed before release."
+        ]
+      },
+      {
+        "id": "s3",
+        "title": "Release Information",
+        "paragraphs": [
+          "The itch.io info panel lists the status as Released and provides an explicit release date: 5 July 2025. Metadata also notes development with Unity and tags including indie, pixel art, and singleplayer.",
+          "The published build is currently distributed as a short standalone browser experience."
+        ]
+      },
+      {
+        "id": "s4",
+        "title": "Relation to RainyForecast",
+        "paragraphs": [
+          "Within RainyForecast’s game lineup, Freaky Golf represents a lighter and more experimental branch focused on accessible web play and mechanic-driven variation."
+        ],
+        "links": [
+          {
+            "text": "Back to article: RainyForecast",
+            "articleKey": "rainyforecast"
+          }
+        ]
+      }
+    ],
+    "footer": {
+      "categoriesLabel": "Categories:",
+      "categories": ["Freaky Golf", "Simulation", "itch.io"],
+      "viewsText": "This page has been viewed",
+      "viewsTextTail": "times.",
+      "updatedText": "Last updated:"
+    }
+  }
+}
