@@ -1,25 +1,32 @@
+from collections import deque
+from heapq import heappop, heappush
 from typing import Any
 
 
 class BiDirectionalPriorityQueue:
     def __init__(self) -> None:
-        self._items: list[dict[str, Any]] = []
-        self._next_order = 0
+        self._data: dict[int, tuple[Any, float]] = {}
+        self._alive: set[int] = set()
+        self._orders: deque[int] = deque()
+        self._min_heap: list[tuple[float, int]] = []
+        self._max_heap: list[tuple[float, int]] = []
+        self._order_counter = 0
 
     def __len__(self) -> int:
-        return len(self._items)
+        return len(self._alive)
 
     def is_empty(self) -> bool:
-        return len(self._items) == 0
+        return len(self) == 0
 
     def enqueue(self, item: Any, priority: float) -> None:
-        entry = {
-            "item": item,
-            "priority": priority,
-            "order": self._next_order,
-        }
-        self._next_order += 1
-        self._items.append(entry)
+        order = self._order_counter
+        self._order_counter += 1
+
+        self._data[order] = (item, priority)
+        self._alive.add(order)
+        self._orders.append(order)
+        heappush(self._min_heap, (priority, order))
+        heappush(self._max_heap, (-priority, order))
 
     def peek(
         self,
@@ -29,13 +36,14 @@ class BiDirectionalPriorityQueue:
         oldest: bool = False,
         newest: bool = False,
     ) -> Any:
-        index = self._find_index(
+        order = self._find_order(
             highest=highest,
             lowest=lowest,
             oldest=oldest,
             newest=newest,
         )
-        return self._items[index]["item"]
+        item, _ = self._data[order]
+        return item
 
     def dequeue(
         self,
@@ -45,15 +53,17 @@ class BiDirectionalPriorityQueue:
         oldest: bool = False,
         newest: bool = False,
     ) -> Any:
-        index = self._find_index(
+        order = self._find_order(
             highest=highest,
             lowest=lowest,
             oldest=oldest,
             newest=newest,
         )
-        return self._items.pop(index)["item"]
+        item, _ = self._data.pop(order)
+        self._alive.remove(order)
+        return item
 
-    def _find_index(
+    def _find_order(
         self,
         *,
         highest: bool,
@@ -61,7 +71,7 @@ class BiDirectionalPriorityQueue:
         oldest: bool,
         newest: bool,
     ) -> int:
-        if not self._items:
+        if self.is_empty():
             raise IndexError("Queue is empty")
 
         mode = self._resolve_mode(
@@ -70,36 +80,37 @@ class BiDirectionalPriorityQueue:
             oldest=oldest,
             newest=newest,
         )
-        best_index = 0
 
-        for index in range(1, len(self._items)):
-            current = self._items[index]
-            best = self._items[best_index]
+        if mode == "highest":
+            self._cleanup_priority_heap(self._max_heap)
+            _, order = self._max_heap[0]
+            return order
 
-            if mode == "highest":
-                if current["priority"] > best["priority"]:
-                    best_index = index
-                elif (
-                    current["priority"] == best["priority"]
-                    and current["order"] < best["order"]
-                ):
-                    best_index = index
-            elif mode == "lowest":
-                if current["priority"] < best["priority"]:
-                    best_index = index
-                elif (
-                    current["priority"] == best["priority"]
-                    and current["order"] < best["order"]
-                ):
-                    best_index = index
-            elif mode == "oldest":
-                if current["order"] < best["order"]:
-                    best_index = index
+        if mode == "lowest":
+            self._cleanup_priority_heap(self._min_heap)
+            _, order = self._min_heap[0]
+            return order
+
+        if mode == "oldest":
+            self._cleanup_order_queue(front=True)
+            return self._orders[0]
+
+        self._cleanup_order_queue(front=False)
+        return self._orders[-1]
+
+    def _cleanup_priority_heap(self, heap: list[tuple[float, int]]) -> None:
+        while heap and heap[0][1] not in self._alive:
+            heappop(heap)
+
+    def _cleanup_order_queue(self, *, front: bool) -> None:
+        while self._orders:
+            candidate = self._orders[0] if front else self._orders[-1]
+            if candidate in self._alive:
+                return
+            if front:
+                self._orders.popleft()
             else:
-                if current["order"] > best["order"]:
-                    best_index = index
-
-        return best_index
+                self._orders.pop()
 
     @staticmethod
     def _resolve_mode(
