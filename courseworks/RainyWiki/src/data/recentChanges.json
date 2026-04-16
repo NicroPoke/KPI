@@ -1,56 +1,11 @@
 [
   {
-    "date": "15 March 2026",
-    "title": "Content expansion and article coverage",
+    "date": "16 April 2026",
+    "title": "Search bar update and article discovery",
     "details": [
-      "Added full standalone wiki-style articles for Ghosted Away and Freaky Golf.",
-      "Linked RainyForecast game subsection entries to dedicated article pages.",
-      "Added return links from individual game articles back to RainyForecast."
-    ]
-  },
-  {
-    "date": "15 March 2026",
-    "title": "Navigation and data architecture update",
-    "details": [
-      "Implemented functional Random article navigation in the header.",
-      "Migrated article storage from JavaScript to src/data/articles.json.",
-      "Refined article content by removing control-description blocks from game pages.",
-      "Enabled automatic infobox image sizing for responsive rendering."
-    ]
-  },
-  {
-    "date": "15 March 2026",
-    "title": "Wiki article system refactor",
-    "details": [
-      "Reworked article rendering to a data-driven structure for easier content replacement.",
-      "Added support for passing a full article object as component input.",
-      "Updated the RainyForecast article to use structured sections and reusable metadata blocks."
-    ]
-  },
-  {
-    "date": "15 March 2026",
-    "title": "Visual content update",
-    "details": [
-      "Connected RainyWiki.png from the public assets as the main infobox image.",
-      "Adjusted infobox image styling for consistent display across screen sizes."
-    ]
-  },
-  {
-    "date": "14–15 March 2026",
-    "title": "Content and writing pass",
-    "details": [
-      "Replaced placeholder text with a complete encyclopedia-style article.",
-      "Standardized the page in English with a neutral, wiki-like tone.",
-      "Added game-related release context and project descriptions for the RainyForecast profile."
-    ]
-  },
-  {
-    "date": "Current development cycle",
-    "title": "Core RainyWiki foundation",
-    "details": [
-      "Built a Vite + Vue single-page interface for a custom RainyWiki layout.",
-      "Implemented AppHeader, WikiArticle, and animated rain background effects.",
-      "Established component structure to support additional articles and sections."
+      "Added the header search bar so readers can quickly find articles by title.",
+      "Ranked search results by term matches and limited the dropdown to the most relevant results.",
+      "Kept navigation in sync so opening a result updates the current article view immediately."
     ]
   }
 ]

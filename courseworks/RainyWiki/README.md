@@ -28,20 +28,8 @@ npm run preview
 
 ## Recent Changes
 
-### 15 March 2026 — Content expansion and article coverage
+### 16 April 2026 — Search bar update and article discovery
 
-- Added full standalone wiki-style articles for Ghosted Away and Freaky Golf.
-- Linked RainyForecast game subsection entries to dedicated article pages.
-- Added return links from individual game articles back to RainyForecast.
-
-### 15 March 2026 — Navigation and data architecture update
-
-- Implemented functional Random article navigation in the header.
-- Migrated article storage from JavaScript to `src/data/articles.json`.
-- Refined article content by removing control-description blocks from game pages.
-- Enabled automatic infobox image sizing for responsive rendering.
-### Current development cycle — Core RainyWiki foundation
-
-- Built a Vite + Vue single-page interface for a custom RainyWiki layout.
-- Implemented AppHeader, WikiArticle, and animated rain background effects.
-- Established component structure to support additional articles and sections.
+- Added the header search bar so readers can quickly find articles by title.
+- Ranked search results by term matches and limited the dropdown to the most relevant matches.
+- Kept navigation in sync so opening a search result updates the current article view immediately.

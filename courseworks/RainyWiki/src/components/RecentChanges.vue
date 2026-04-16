@@ -6,7 +6,7 @@ import changeLog from '../data/recentChanges.json';
   <section class="recent-changes" aria-labelledby="recent-changes-title">
     <header class="recent-header">
       <h2 id="recent-changes-title">Recent Changes</h2>
-      <p>Development notes and content updates for RainyWiki and RainyForecast pages.</p>
+      <p>Current updates for RainyWiki, including the new header search bar and recent article navigation changes.</p>
     </header>
 
     <ol class="changes-list">
