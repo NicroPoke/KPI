@@ -1,5 +1,5 @@
 ﻿<script setup>
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AppHeader from './components/AppHeader.vue'
 import WikiArticle from './components/WikiArticle.vue'
 import RecentChanges from './components/RecentChanges.vue'
@@ -8,10 +8,96 @@ import articles from './data/articles.json'
 const activeTab = ref('article');
 const activeArticleKey = ref('rainyforecast');
 const articleKeys = Object.keys(articles);
+const allowedTabs = new Set(['article', 'recent-changes']);
+const defaultTab = 'article';
+const defaultArticleKey = 'rainyforecast';
+
+const searchIndex = articleKeys.map((articleKey) => {
+  const article = articles[articleKey] ?? {};
+
+  return {
+    key: articleKey,
+    title: article.title ?? articleKey,
+  };
+});
+
+const sanitizeArticleKey = (candidate) => {
+  if (candidate && articles[candidate]) {
+    return candidate;
+  }
+
+  if (articles[defaultArticleKey]) {
+    return defaultArticleKey;
+  }
+
+  return articleKeys[0] ?? defaultArticleKey;
+};
+
+const readStateFromUrl = () => {
+  const hash = window.location.hash.replace(/^#/, '');
+  const segments = hash.split('/').filter(Boolean);
+
+  if (segments[0] === 'recent-changes') {
+    return {
+      tab: 'recent-changes',
+      articleKey: sanitizeArticleKey(activeArticleKey.value),
+    };
+  }
+
+  if (segments[0] === 'article') {
+    return {
+      tab: 'article',
+      articleKey: sanitizeArticleKey(decodeURIComponent(segments[1] ?? '')),
+    };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const legacyTab = params.get('tab');
+  if (allowedTabs.has(legacyTab)) {
+    return {
+      tab: legacyTab,
+      articleKey: sanitizeArticleKey(params.get('article')),
+    };
+  }
+
+  return {
+    tab: defaultTab,
+    articleKey: sanitizeArticleKey(defaultArticleKey),
+  };
+};
+
+const writeStateToUrl = (tab, articleKey, { replace = false } = {}) => {
+  const url = new URL(window.location.href);
+  const route = tab === 'article'
+    ? `/article/${encodeURIComponent(sanitizeArticleKey(articleKey))}`
+    : '/recent-changes';
+
+  url.searchParams.delete('tab');
+  url.searchParams.delete('article');
+  url.hash = route;
+
+  const method = replace ? 'replaceState' : 'pushState';
+  window.history[method]({}, '', `${url.pathname}${url.search}#${route}`);
+};
+
+const syncStateFromUrl = () => {
+  const { tab, articleKey } = readStateFromUrl();
+  activeTab.value = tab;
+
+  if (tab === 'article') {
+    activeArticleKey.value = articleKey;
+  } else if (!articles[activeArticleKey.value]) {
+    activeArticleKey.value = sanitizeArticleKey(activeArticleKey.value);
+  }
+};
+
+const handleHashChange = () => {
+  syncStateFromUrl();
+};
 
 const getRandomArticleKey = () => {
   if (articleKeys.length <= 1) {
-    return articleKeys[0] ?? 'rainyforecast';
+    return articleKeys[0] ?? defaultArticleKey;
   }
 
   const availableKeys = articleKeys.filter((key) => key !== activeArticleKey.value);
@@ -23,13 +109,20 @@ const handleNavigate = (tab) => {
   if (tab === 'random-article') {
     activeArticleKey.value = getRandomArticleKey();
     activeTab.value = 'article';
+    writeStateToUrl('article', activeArticleKey.value);
+    return;
+  }
+
+  if (!allowedTabs.has(tab)) {
     return;
   }
 
   activeTab.value = tab;
-  if (tab === 'article' && !articles[activeArticleKey.value]) {
-    activeArticleKey.value = 'rainyforecast';
+  if (tab === 'article') {
+    activeArticleKey.value = sanitizeArticleKey(activeArticleKey.value);
   }
+
+  writeStateToUrl(activeTab.value, activeArticleKey.value);
 };
 
 const handleOpenArticle = (articleKey) => {
@@ -39,7 +132,18 @@ const handleOpenArticle = (articleKey) => {
 
   activeTab.value = 'article';
   activeArticleKey.value = articleKey;
+  writeStateToUrl('article', activeArticleKey.value);
 };
+
+onMounted(() => {
+  syncStateFromUrl();
+  writeStateToUrl(activeTab.value, activeArticleKey.value, { replace: true });
+  window.addEventListener('hashchange', handleHashChange);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', handleHashChange);
+});
 
 const rainDrops = Array.from({ length: 67 }, (_, index) => {
   const left = (index * 4.9) % 100
@@ -81,7 +185,12 @@ const rainDrops = Array.from({ length: 67 }, (_, index) => {
         }"
       >/</span>
     </div>
-    <AppHeader :active-tab="activeTab" @navigate="handleNavigate" />
+    <AppHeader
+      :active-tab="activeTab"
+      :search-index="searchIndex"
+      @navigate="handleNavigate"
+      @open-article="handleOpenArticle"
+    />
     <div class="page-body">
       <main class="page-main">
         <WikiArticle

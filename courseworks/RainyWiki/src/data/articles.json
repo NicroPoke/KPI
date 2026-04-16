@@ -104,7 +104,7 @@
       "imageSrc": "/logo.png",
       "imageAlt": "Unknown Heights article image",
       "rows": [
-        { "label": "Type", "value": "Video game (early demo)" },
+        { "label": "Type", "value": "Video game" },
         { "label": "Status", "value": "Prototype" },
         { "label": "Platform", "value": "Windows" },
         { "label": "Genre", "value": "Survival, Horror" },

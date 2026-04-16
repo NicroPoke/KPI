@@ -13,96 +13,34 @@ const props = defineProps({
 
 const emit = defineEmits(['open-article']);
 
-const defaultArticle = {
-  title: 'RainyForecast',
-  badges: ['Indie Game Studio', 'itch.io'],
-  meta: ['Platform: itch.io'],
-  infobox: {
-    title: 'RainyForecast',
-    imageSrc: '/RainyWiki.png',
-    imageAlt: 'RainyForecast logo',
-    rows: [
-      { label: 'Type', value: 'Indie game studio' },
-      { label: 'Status', value: 'Active' },
-      { label: 'Main platform', value: 'itch.io' },
-      { label: 'Focus', value: 'Multi-genre projects' },
-      { label: 'Game platforms', value: 'Windows, HTML5 (browser)' },
-      { label: 'Public channels', value: 'YouTube, Twitter/X' },
-    ],
-  },
+const fallbackArticle = {
+  title: 'Article not found',
+  badges: [],
+  meta: [],
+  infobox: null,
   lead: {
-    strong: 'RainyForecast',
-    text: ' is an indie game studio publishing projects on itch.io. The studio page features games across multiple genres, including survival, shooter, and simulation, along with links to external communication channels.',
+    strong: 'Notice:',
+    text: ' this article is unavailable. Please open another page from navigation.',
   },
-  sections: [
-    {
-      id: 's1',
-      title: 'Overview',
-      paragraphs: [
-        'RainyForecast is positioned as an independent studio focused on small experimental projects. Its itch.io profile is used as the main catalog for releases and demo versions.',
-        'Based on publicly available information, the studio works across multiple genres and releases both prototype builds and finished small-scale titles for Windows and browser platforms.',
-      ],
-    },
-    {
-      id: 's2',
-      title: 'Games',
-      subsections: [
-        {
-          id: 's2-1',
-          title: 'Unknown Heights [DEMO]',
-          paragraphs: [
-            'Unknown Heights [DEMO] is an early demo version of a Windows survival/horror project. The game is described as an exploration of procedurally generated floating islands inhabited by dangerous creatures. No exact release date is listed on the project page.',
-          ],
-        },
-        {
-          id: 's2-2',
-          title: 'Ghosted Away',
-          paragraphs: [
-            'Ghosted Away is an isometric Windows shooter created for Shovel Game Jam 2025. According to its description, the core mechanic revolves around capturing ghosts and using their elemental abilities. The downloadable release archive includes the date token corresponding to 20 July 2025.',
-          ],
-        },
-        {
-          id: 's2-3',
-          title: 'Freaky Golf',
-          paragraphs: [
-            'Freaky Golf is a short browser game (HTML5) in the simulation/sports genres. The project presents a sequence of levels with progressively changing "unconventional golf" mechanics. The project page lists the release date as 5 July 2025.',
-          ],
-        },
-      ],
-    },
-    {
-      id: 's3',
-      title: 'Team and Public Presence',
-      paragraphs: [
-        'The profile links these projects to RainyForecast’s collaborative development context and related creators. It also highlights external platforms used for updates and audience communication.',
-      ],
-      list: [
-        { label: 'YouTube', text: 'video publications and media materials.' },
-        { label: 'Twitter/X', text: 'short updates and announcements.' },
-        { label: 'itch.io', text: 'the primary showcase for releases and demos.' },
-      ],
-    },
-    {
-      id: 's4',
-      title: 'Portfolio Overview',
-      paragraphs: [
-        'The available RainyForecast catalog presents the studio as an independent team focused on compact multi-genre projects. The 2025 lineup includes both prototype experiments and completed game releases.',
-      ],
-    },
-  ],
+  sections: [],
   footer: {
     categoriesLabel: 'Categories:',
-    categories: ['Indie', 'itch.io', 'RainyForecast'],
+    categories: [],
     viewsText: 'This page has been viewed',
     viewsTextTail: 'times.',
     updatedText: 'Last updated:',
   },
 };
 
-const articleData = computed(() => props.article ?? defaultArticle);
+const articleData = computed(() => props.article ?? fallbackArticle);
 
 const openArticle = (articleKey) => {
   emit('open-article', articleKey);
+};
+
+const scrollToSection = (sectionId) => {
+  const sectionElement = document.getElementById(sectionId);
+  sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 </script>
 
@@ -128,7 +66,7 @@ const openArticle = (articleKey) => {
       </div>
     </div>
 
-    <aside class="infobox">
+    <aside v-if="articleData.infobox" class="infobox">
       <div class="infobox-title">{{ articleData.infobox.title }}</div>
       <div class="infobox-img">
         <img class="infobox-logo" :src="articleData.infobox.imageSrc" :alt="articleData.infobox.imageAlt" />
@@ -147,14 +85,14 @@ const openArticle = (articleKey) => {
       <strong>{{ articleData.lead.strong }}</strong>{{ articleData.lead.text }}
     </p>
 
-    <nav class="toc">
+    <nav v-if="articleData.sections?.length" class="toc">
       <div class="toc-header">Contents</div>
       <ol class="toc-list">
-        <li v-for="(section, sectionIndex) in articleData.sections" :key="section.id">
-          <a :href="`#${section.id}`">{{ sectionIndex + 1 }}. {{ section.title }}</a>
+        <li v-for="section in articleData.sections" :key="section.id">
+          <a href="#" @click.prevent="scrollToSection(section.id)">{{ section.title }}</a>
           <ol v-if="section.subsections?.length">
-            <li v-for="(subsection, subsectionIndex) in section.subsections" :key="subsection.id">
-              <a :href="`#${subsection.id}`">{{ sectionIndex + 1 }}.{{ subsectionIndex + 1 }} {{ subsection.title }}</a>
+            <li v-for="subsection in section.subsections" :key="subsection.id">
+              <a href="#" @click.prevent="scrollToSection(subsection.id)">{{ subsection.title }}</a>
             </li>
           </ol>
         </li>
@@ -162,19 +100,19 @@ const openArticle = (articleKey) => {
     </nav>
 
     <section
-      v-for="(section, sectionIndex) in articleData.sections"
+      v-for="section in articleData.sections"
       :id="section.id"
       :key="section.id"
       class="article-section"
     >
-      <h2>{{ sectionIndex + 1 }}. {{ section.title }}</h2>
+      <h2>{{ section.title }}</h2>
       <p v-for="paragraph in section.paragraphs" :key="paragraph">
         {{ paragraph }}
       </p>
 
       <template v-if="section.subsections?.length">
-        <template v-for="(subsection, subsectionIndex) in section.subsections" :key="subsection.id">
-          <h3 :id="subsection.id">{{ sectionIndex + 1 }}.{{ subsectionIndex + 1 }} {{ subsection.title }}</h3>
+        <template v-for="subsection in section.subsections" :key="subsection.id">
+          <h3 :id="subsection.id">{{ subsection.title }}</h3>
           <p v-for="subParagraph in subsection.paragraphs" :key="subParagraph">
             {{ subParagraph }}
           </p>
