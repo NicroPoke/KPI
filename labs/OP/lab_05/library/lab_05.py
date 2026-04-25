@@ -1,119 +1,219 @@
 import asyncio
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 
 
-class CancelToken:
+class AbortError(Exception):
+    pass
+
+
+class AbortSignal:
     def __init__(self) -> None:
-        self._event = threading.Event()
+        self.aborted = False
+        self._listeners = []
 
-    def cancel(self) -> None:
-        self._event.set()
+    def add_event_listener(self, event_name, callback) -> None:
+        if event_name != "abort":
+            return
+        self._listeners.append(callback)
 
-    def is_cancelled(self) -> bool:
-        return self._event.is_set()
+    def remove_event_listener(self, event_name, callback) -> None:
+        if event_name != "abort":
+            return
+        self._listeners = [cb for cb in self._listeners if cb is not callback]
+
+    def _dispatch_abort(self) -> None:
+        for callback in list(self._listeners):
+            callback()
+
+
+class AbortController:
+    def __init__(self) -> None:
+        self.signal = AbortSignal()
+
+    def abort(self) -> None:
+        if self.signal.aborted:
+            return
+        self.signal.aborted = True
+        self.signal._dispatch_abort()
+
+
+CancelToken = AbortController
 
 
 _EXECUTOR = ThreadPoolExecutor(max_workers=4)
 
 
-def _map_worker(
-    items,
-    mapper,
-    delay=0.0,
-    cancel_token=None,
-):
+def _aborted(signal, abort_event):
+    return (signal and signal.aborted) or (abort_event and abort_event.is_set())
+
+
+def _aborted_future():
+    f = Future()
+    f.set_exception(AbortError("async_map aborted"))
+    return f
+
+
+def _map_worker(items, mapper, delay=0.0, signal=None, abort_event=None):
     result = []
     for item in items:
-        if cancel_token and cancel_token.is_cancelled():
-            raise RuntimeError("async_map aborted")
+        if _aborted(signal, abort_event):
+            raise AbortError("async_map aborted")
         if delay > 0:
             time.sleep(delay)
+        if _aborted(signal, abort_event):
+            raise AbortError("async_map aborted")
         result.append(mapper(item))
     return result
 
 
-def async_map_callback(
-    items,
-    mapper,
-    on_done,
-    on_error=None,
-    delay=0.0,
-    cancel_token=None,
-):
+def async_map_callback(items, mapper, callback, delay=0.0, signal=None):
+    abort_event = threading.Event()
+
+    def on_abort() -> None:
+        abort_event.set()
+
+    if signal:
+        signal.add_event_listener("abort", on_abort)
+        if signal.aborted:
+            signal.remove_event_listener("abort", on_abort)
+            callback(AbortError("async_map aborted"), None)
+            return None
+
     def runner():
         try:
-            on_done(_map_worker(items, mapper, delay=delay, cancel_token=cancel_token))
+            values = _map_worker(
+                items,
+                mapper,
+                delay=delay,
+                signal=signal,
+                abort_event=abort_event,
+            )
+            callback(None, values)
         except Exception as exc:
-            if on_error:
-                on_error(exc)
+            callback(exc, None)
+        finally:
+            if signal:
+                signal.remove_event_listener("abort", on_abort)
 
     thread = threading.Thread(target=runner, daemon=True)
     thread.start()
     return thread
 
 
-def async_map_promise(
-    items,
-    mapper,
-    delay=0.0,
-    cancel_token=None,
-):
-    return _EXECUTOR.submit(
+def async_map_promise(items, mapper, delay=0.0, signal=None):
+    abort_event = threading.Event()
+
+    def on_abort() -> None:
+        abort_event.set()
+
+    if signal:
+        signal.add_event_listener("abort", on_abort)
+        if signal.aborted:
+            signal.remove_event_listener("abort", on_abort)
+            return _aborted_future()
+
+    future = _EXECUTOR.submit(
         _map_worker,
         items,
         mapper,
-        delay=delay,
-        cancel_token=cancel_token,
+        delay,
+        signal,
+        abort_event,
     )
 
+    if signal:
+        def cleanup(_):
+            signal.remove_event_listener("abort", on_abort)
 
-async def async_map_await(
-    items,
-    mapper,
-    delay=0.0,
-    cancel_token=None,
-):
-    future = async_map_promise(items, mapper, delay=delay, cancel_token=cancel_token)
+        future.add_done_callback(cleanup)
+
+    return future
+
+
+async def async_map_await(items, mapper, delay=0.0, signal=None):
+    future = async_map_promise(items, mapper, delay=delay, signal=signal)
     return await asyncio.wrap_future(future)
 
 
-def demo_progress():
-    demo_data = [1, 2, 3, 4]
+def demo_callback_case():
+    data = [1, 2, 3, 4]
     callback_ready = threading.Event()
-    callback_box = {}
+    out = {}
 
-    def on_done(values):
-        callback_box["callback"] = values
+    def done(err, values):
+        if err:
+            out["error"] = str(err)
+        else:
+            out["result"] = values
         callback_ready.set()
 
-    def on_error(exc):
-        callback_box["callback_error"] = str(exc)
-        callback_ready.set()
-
-    async_map_callback(demo_data, lambda x: x * 10, on_done, on_error, delay=0.01)
+    async_map_callback(data, lambda x: x * 10, done, delay=0.01)
     callback_ready.wait(timeout=2)
+    return out
 
-    future = async_map_promise(demo_data, lambda x: x + 1, delay=0.01)
-    callback_box["future"] = future.result(timeout=2)
 
-    callback_box["async_await"] = asyncio.run(
-        async_map_await(demo_data, lambda x: x * x, delay=0.01)
-    )
+def demo_callback_abort_case():
+    data = [1, 2, 3, 4] * 3
+    callback_ready = threading.Event()
+    out = {}
+    controller = AbortController()
 
-    token = CancelToken()
-    abort_future = async_map_promise(demo_data * 3, lambda x: x, delay=0.05, cancel_token=token)
+    def done(err, values):
+        if err:
+            out["status"] = "cancelled"
+            out["error"] = str(err)
+        else:
+            out["status"] = "ok"
+            out["result"] = values
+        callback_ready.set()
+
+    async_map_callback(data, lambda x: x, done, delay=0.05, signal=controller.signal)
     time.sleep(0.08)
-    token.cancel()
-    try:
-        abort_future.result(timeout=2)
-        callback_box["abort"] = "not cancelled"
-    except Exception as exc:
-        callback_box["abort"] = f"cancelled: {exc}"
+    controller.abort()
+    callback_ready.wait(timeout=2)
+    return out
 
-    return callback_box
+
+def demo_promise_case():
+    data = [1, 2, 3, 4]
+    future = async_map_promise(data, lambda x: x + 1, delay=0.01)
+    return {"result": future.result(timeout=2)}
+
+
+async def demo_async_await_case():
+    data = [1, 2, 3, 4]
+    values = await async_map_await(data, lambda x: x * x, delay=0.01)
+    return {"result": values}
+
+
+def demo_abort_case():
+    data = [1, 2, 3, 4] * 3
+    controller = AbortController()
+    future = async_map_promise(data, lambda x: x, delay=0.05, signal=controller.signal)
+    time.sleep(0.08)
+    controller.abort()
+    try:
+        future.result(timeout=2)
+        return {"status": "not_cancelled"}
+    except Exception as exc:
+        return {"status": "cancelled", "error": str(exc)}
+
+
+def demo_cases():
+    return {
+        "callback": demo_callback_case(),
+        "callback_abort": demo_callback_abort_case(),
+        "promise": demo_promise_case(),
+        "async_await": asyncio.run(demo_async_await_case()),
+        "abort": demo_abort_case(),
+    }
+
+
+def demo_progress():
+    return demo_cases()
 
 
 def hello_lab():
-    return "Lab 05 started: async map variants."
+    return "Lab 05: async map variants complete."
