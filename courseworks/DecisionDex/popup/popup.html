@@ -8,10 +8,20 @@
   </head>
   <body>
     <main class="popup">
-      <h1>DecisionDex</h1>
-      <p>DecisionDex extension is ready.</p>
-      <button id="pingBtn" type="button">Check background</button>
-      <p id="result" class="result"></p>
+      <header class="topbar">
+        <h1>DecisionDex</h1>
+        <p id="status" class="status"></p>
+      </header>
+
+      <section class="team-section">
+        <h2>Your Team</h2>
+        <div id="myTeam" class="team-grid"></div>
+      </section>
+
+      <section class="team-section">
+        <h2>Enemy Team</h2>
+        <div id="enemyTeam" class="team-grid"></div>
+      </section>
     </main>
 
     <script src="popup.js"></script>
