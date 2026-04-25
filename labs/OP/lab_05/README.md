@@ -1,40 +1,39 @@
-# Lab 05 - Async Array Function Variants
+# Lab 05 - Async map
 
-Task 5 implementation based on one array function: `map`.
+In this lab, map is implemented in three async styles.
 
-Implemented variants:
+## What is included
 
-1. Callback-based async version: `async_map_callback(...)`
-	- callback contract is error-first: `callback(err, value)`
-2. Promise-like version (Python `Future`): `async_map_promise(...)`
-3. Async/await usage over promise variant:
-	- `async_map_await(...)`
-	- demo with direct `await asyncio.wrap_future(...)`
-4. Demo cases for each version: `demo_cases()`
-5. Cancellable support with `AbortController` / `AbortSignal`
-	- on abort: callback gets `AbortError`, future receives exception
-	- abort listeners are removed after completion (cleanup)
+1. Callback version: async_map_callback(...)
+2. Future version: async_map_promise(...)
+3. Async/await version: async_map_await(...)
+4. Demo examples: demo_cases()
+5. Cancel support via AbortController and AbortSignal
 
-## Project structure
+If operation is cancelled:
+- callback receives AbortError
+- Future completes with exception
 
-- `library/lab_05.py` - main implementation
-- `library/__init__.py` - public exports
-- `example/main.py` - example runner
-- `run_lab.py` - direct lab runner
+## Files
+
+- library/lab_05.py - main logic
+- library/__init__.py - exports
+- example/main.py - demo run
+- run_lab.py - direct run
 
 ## Run
 
-From `lab_05` folder:
+From the lab_05 folder:
 
 ```bash
 python example/main.py
 python run_lab.py
 ```
 
-Expected output includes four demo blocks:
+## Expected output
 
 - callback result
-- callback abort result (error-first callback receives abort error)
+- callback abort result
 - promise result
 - async/await result
 - abort result (cancelled)
