@@ -16,3 +16,11 @@ This folder stores all laboratory works for the course.
 	- `library/` — priority queue implementation
 	- `example/main.py` — simple usage example
 	- `run_lab.py` — standalone run script
+- `lab_05/` — fifth laboratory work (Python)
+	- `library/` — async map implementations
+	- `example/main.py` — simple usage example
+	- `run_lab.py` — standalone run script
+- `lab_06/` — sixth laboratory work (Python)
+	- `library/` — stream/async-iterator processing
+	- `example/main.py` — simple usage example
+	- `run_lab.py` — standalone run script
