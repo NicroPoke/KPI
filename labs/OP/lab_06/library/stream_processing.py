@@ -85,6 +85,7 @@ def stream_to_events(
             event_stream.emit("end", None)
         except Exception as exc:
             event_stream.emit("error", exc)
+            raise
 
     return asyncio.create_task(_pump())
 
@@ -134,7 +135,10 @@ async def demo_event_error_case() -> str:
     except Exception as exc:
         return f"event-error: {exc}"
     finally:
-        await task
+        try:
+            await task
+        except Exception:
+            pass
 
 
 def hello_lab() -> str:
