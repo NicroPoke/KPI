@@ -14,6 +14,51 @@ The system must:
 - return a ranked list of candidates with reasoning;
 - remain deterministic, with no neural networks and no probabilistic learning.
 
+## Target Architecture and Data Contract
+
+DecisionDex must be built as a layered system with a clear data boundary between the browser extension UI, the background coordinator, and the procedural core engine.
+
+### Architecture Layers
+
+- Content Script: reads the current Pokemon Showdown battle state from the page and prepares raw team data.
+- Background Script: coordinates messages, manages request flow, and acts as the bridge between the UI and the core logic.
+- Popup / Overlay UI: displays the recommendation, candidate ranking, and explanation to the user.
+- Core Engine: performs all deterministic scoring, matchup evaluation, memoization, and utility processing.
+
+### Data Flow
+
+1. The content script extracts the player's team, the opponent preview, and any available battle context.
+2. The background script receives the extracted data and forwards it to the core engine.
+3. The core engine computes candidate scores, predicts likely leads, and produces a ranked result.
+4. The UI renders the recommendation and supporting reasoning.
+
+### Input Contract
+
+The core engine must accept a normalized battle payload containing:
+
+- the selected format;
+- the player's team;
+- the opponent preview team;
+- optional meta dataset records;
+- optional battle flags such as known lead information or live battle state.
+
+### Output Contract
+
+The core engine must return a deterministic recommendation object containing:
+
+- the best lead candidate;
+- a ranked list of all candidates;
+- a score breakdown by factor;
+- a human-readable explanation;
+- any derived predictions used during scoring.
+
+### Integration Rules
+
+- The UI must not calculate battle scores directly.
+- The content script must not contain matchup logic beyond extraction and normalization.
+- The background script must not own domain scoring rules.
+- All scoring formulas and heuristics must live in the core engine.
+
 ## Functional Specification
 
 ### 1. Battle Engine

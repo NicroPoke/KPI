@@ -1,34 +1,16 @@
 if (!window.__decisionDexContentLoaded) {
 	window.__decisionDexContentLoaded = true;
 
-	const SHOWDOWN_SPRITES_BASE = "https://play.pokemonshowdown.com/sprites/dex";
-	const FALLBACK_SPRITE = "https://play.pokemonshowdown.com/sprites/misc/pokeball.png";
+	const contract = window.DecisionDexContract;
 	const LIVE_UPDATE_DEBOUNCE_MS = 180;
+
+	if (!contract) {
+		throw new Error("DecisionDexContract is not available in the content script.");
+	}
 
 	let battlePresenceObserver = null;
 	let liveObserver = null;
 	let liveTimer = null;
-
-	function toPokemonId(name) {
-		return String(name || "")
-			.toLowerCase()
-			.replace(/\b(m|f)\b/g, "")
-			.replace(/[^a-z0-9]+/g, "");
-	}
-
-	function normalizePokemonName(rawName) {
-		if (!rawName) {
-			return "Unknown";
-		}
-
-		return (
-			rawName
-				.replace(/\(.*?\)/g, "")
-				.replace(/(fainted|active|statused)/gi, "")
-				.replace(/\s+/g, " ")
-				.trim() || "Unknown"
-		);
-	}
 
 	function getPokemonNameFromIcon(iconNode) {
 		const label =
@@ -39,7 +21,7 @@ if (!window.__decisionDexContentLoaded) {
 			iconNode.textContent ||
 			"";
 
-		return normalizePokemonName(label);
+		return contract.normalizePokemonName(label);
 	}
 
 	function extractTeam(selector) {
@@ -49,7 +31,7 @@ if (!window.__decisionDexContentLoaded) {
 
 		for (const iconNode of iconNodes) {
 			const name = getPokemonNameFromIcon(iconNode);
-			const id = toPokemonId(name);
+			const id = contract.toPokemonId(name);
 
 			if (!id || seen.has(id)) {
 				continue;
@@ -58,7 +40,7 @@ if (!window.__decisionDexContentLoaded) {
 			seen.add(id);
 			team.push({
 				name,
-				sprite: `${SHOWDOWN_SPRITES_BASE}/${id}.png`,
+				sprite: `${contract.SHOWDOWN_SPRITES_BASE}/${id}.png`,
 			});
 
 			if (team.length === 6) {
@@ -67,10 +49,10 @@ if (!window.__decisionDexContentLoaded) {
 		}
 
 		while (team.length < 6) {
-			team.push({ name: "Unknown", sprite: FALLBACK_SPRITE });
+			team.push({ name: "Unknown", sprite: contract.FALLBACK_SPRITE });
 		}
 
-		return team;
+		return contract.normalizeTeam(team, "unknown");
 	}
 
 	function getBattleRoot() {
@@ -94,14 +76,21 @@ if (!window.__decisionDexContentLoaded) {
 
 		return {
 			ok: true,
-			myTeam,
-			enemyTeam,
+			payload: contract.buildBattlePayload({
+				myTeam,
+				enemyTeam,
+				format: "unknown",
+				source: "content-script",
+				live: Boolean(liveObserver),
+				battleActive: true,
+				capturedAt: new Date().toISOString(),
+			}),
 		};
 	}
 
 	function broadcastBattleTeamsUpdate() {
 		chrome.runtime.sendMessage({
-			type: "LIVE_BATTLE_TEAMS_UPDATE",
+			type: contract.MESSAGE_TYPES.LIVE_BATTLE_TEAMS_UPDATE,
 			payload: getBattleTeams(),
 		});
 	}
@@ -186,18 +175,18 @@ if (!window.__decisionDexContentLoaded) {
 			return;
 		}
 
-		if (message?.type === "GET_BATTLE_TEAMS") {
+		if (message?.type === contract.MESSAGE_TYPES.GET_BATTLE_TEAMS) {
 			sendResponse(getBattleTeams());
 			return;
 		}
 
-		if (message?.type === "ENABLE_AUTO_BATTLE_WATCH") {
+		if (message?.type === contract.MESSAGE_TYPES.ENABLE_AUTO_BATTLE_WATCH) {
 			enableAutoBattleWatch();
 			sendResponse({ ok: true });
 			return;
 		}
 
-		if (message?.type === "DISABLE_AUTO_BATTLE_WATCH") {
+		if (message?.type === contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH) {
 			disableAutoBattleWatch();
 			sendResponse({ ok: true });
 		}

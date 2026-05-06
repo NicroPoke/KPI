@@ -25,6 +25,7 @@
         "<all_urls>"
       ],
       "js": [
+        "core/dataContract.js",
         "content.js"
       ]
     }
