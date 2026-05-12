@@ -1,4 +1,13 @@
 importScripts("core/dataContract.js");
+importScripts("core/generator.js");
+importScripts("core/memoization.js");
+importScripts("core/priorityQueue.js");
+importScripts("core/asyncUtils.js");
+importScripts("core/streamProcessor.js");
+importScripts("core/events.js");
+importScripts("core/authProxy.js");
+importScripts("core/logger.js");
+importScripts("core/index.js");
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("DecisionDex installed");

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DecisionDex Core Demo</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #f4efe6;
+      padding: 20px;
+      color: #1f1b16;
+    }
+    h1 {
+      color: #0f7b6c;
+    }
+    pre {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: #0f7b6c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px 0;
+    }
+    button:hover {
+      background: #0d6659;
+    }
+  </style>
+</head>
+<body>
+  <h1>DecisionDex Core Module Demo</h1>
+  
+  <p>This page demonstrates the core utility modules.</p>
+  
+  <h2>Available Modules:</h2>
+  <ul>
+    <li><strong>Generator:</strong> Infinite generators and timeout iterators</li>
+    <li><strong>Memoization:</strong> LRU, LFU, and TTL caching strategies</li>
+    <li><strong>PriorityQueue:</strong> Bi-directional priority queue</li>
+    <li><strong>AsyncUtils:</strong> Async array map with abort support</li>
+    <li><strong>StreamProcessor:</strong> Stream-based data processing</li>
+    <li><strong>Events:</strong> Simple EventEmitter / Reactive system</li>
+    <li><strong>AuthProxy:</strong> Request wrapper for API keys and tokens</li>
+    <li><strong>Logger:</strong> Logging with decorators</li>
+  </ul>
+
+  <h2>Run Demo:</h2>
+  <button onclick="runDemo()">Run All Examples</button>
+  <button onclick="clearOutput()">Clear Output</button>
+
+  <h2>Output:</h2>
+  <pre id="output"></pre>
+
+  <!-- Load all core modules -->
+  <script src="../core/generator.js"></script>
+  <script src="../core/memoization.js"></script>
+  <script src="../core/priorityQueue.js"></script>
+  <script src="../core/asyncUtils.js"></script>
+  <script src="../core/streamProcessor.js"></script>
+  <script src="../core/events.js"></script>
+  <script src="../core/authProxy.js"></script>
+  <script src="../core/logger.js"></script>
+  <script src="../core/index.js"></script>
+
+  <!-- Demo script -->
+  <script>
+    var output = document.getElementById("output");
+    var originalLog = console.log;
+
+    function captureLog() {
+      console.log = function() {
+        var args = Array.prototype.slice.call(arguments);
+        var text = args.join(" ");
+        output.textContent += text + "\n";
+        originalLog.apply(console, arguments);
+      };
+    }
+
+    function restoreLog() {
+      console.log = originalLog;
+    }
+
+    function clearOutput() {
+      output.textContent = "";
+    }
+
+    function runDemo() {
+      clearOutput();
+      captureLog();
+
+      // Run minimal demo
+      try {
+        console.log("=== Generator Demo ===");
+        var leads = ["Garchomp", "Dragapult"];
+        var gen = Generator.roundRobin(leads);
+        console.log("Next: " + gen.next().value);
+        console.log("Next: " + gen.next().value);
+        console.log("Next: " + gen.next().value);
+
+        console.log("\n=== Memoization Demo ===");
+        var memoFn = Memoization.createLRU(function(x) { return x * 2; }, 10);
+        console.log("First call: " + memoFn(5));
+        console.log("Cached call: " + memoFn(5));
+
+        console.log("\n=== Priority Queue Demo ===");
+        var queue = PriorityQueue.create();
+        queue.enqueue("A", 10);
+        queue.enqueue("B", 5);
+        console.log("Highest priority: " + queue.dequeue("highest"));
+
+        console.log("\n=== Events Demo ===");
+        var emitter = Events.createEmitter();
+        emitter.subscribe("test", function(data) {
+          console.log("Event fired: " + data);
+        });
+        emitter.emit("test", "Hello!");
+
+        console.log("\n=== Logger Demo ===");
+        var logger = Logger.createLogger();
+        logger.info("Logger test");
+
+        console.log("\n=== Demo Complete ===");
+      } catch (error) {
+        console.log("Error: " + error.message);
+      }
+
+      restoreLog();
+    }
+  </script>
+</body>
+</html>

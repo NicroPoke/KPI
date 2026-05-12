@@ -141,9 +141,31 @@ The logic must be extensible by adding new entries to the lookup data without ch
 
 ### Recommended Repository Structure
 
-The repository should include a modular structure with core utilities, extension code, and an example project. The intended folders are core, extension, and example, with separate modules for generator logic, memoization, priority queueing, async utilities, stream processing, events, authentication proxying, and logging.
+The repository contains a modular core engine organized as follows:
 
-The current project already contains the base extension scaffold, including the manifest, background script, content script, and popup UI.
+**Core Modules** (in `core/`):
+- `dataContract.js` - shared data structures and message types for team normalization and battle payloads;
+- `generator.js` - infinite generators and timeout iterators for cyclic traversal;
+- `memoization.js` - LRU, LFU, and TTL caching strategies for matchup evaluations;
+- `priorityQueue.js` - bi-directional priority queue for ranking candidates;
+- `asyncUtils.js` - async array map and utilities with abort support;
+- `streamProcessor.js` - stream-based processing for large datasets;
+- `events.js` - event emitter and reactive system for UI updates;
+- `authProxy.js` - authentication wrapper for API requests;
+- `logger.js` - logging decorator with async support;
+- `index.js` - module export aggregator.
+
+**Extension Files** (root and `popup/`):
+- `background.js` - service worker coordinating messages and tab management;
+- `content.js` - content script extracting battle data from Pokemon Showdown;
+- `manifest.json` - extension configuration;
+- `popup/popup.html`, `popup/popup.js`, `popup/popup.css` - UI overlay.
+
+**Example** (in `example/`):
+- `demo.js` - demonstration of all core modules;
+- `index.html` - interactive demo page.
+
+The current project already contains the base extension scaffold and the complete core utility library.
 
 ## Technical Tasks 1–9
 

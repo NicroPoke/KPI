@@ -26,6 +26,15 @@
       ],
       "js": [
         "core/dataContract.js",
+        "core/generator.js",
+        "core/memoization.js",
+        "core/priorityQueue.js",
+        "core/asyncUtils.js",
+        "core/streamProcessor.js",
+        "core/events.js",
+        "core/authProxy.js",
+        "core/logger.js",
+        "core/index.js",
         "content.js"
       ]
     }

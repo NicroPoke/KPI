@@ -1,15 +1,18 @@
 ﻿<script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import AppHeader from './components/AppHeader.vue'
 import WikiArticle from './components/WikiArticle.vue'
 import RecentChanges from './components/RecentChanges.vue'
 import articles from './data/articles.json'
 
+const router = useRouter()
+const route = useRoute()
+
 const activeTab = ref('article');
 const activeArticleKey = ref('rainyforecast');
 const articleKeys = Object.keys(articles);
 const allowedTabs = new Set(['article', 'recent-changes']);
-const defaultTab = 'article';
 const defaultArticleKey = 'rainyforecast';
 
 const searchIndex = articleKeys.map((articleKey) => {
@@ -33,67 +36,24 @@ const sanitizeArticleKey = (candidate) => {
   return articleKeys[0] ?? defaultArticleKey;
 };
 
-const readStateFromUrl = () => {
-  const hash = window.location.hash.replace(/^#/, '');
-  const segments = hash.split('/').filter(Boolean);
-
-  if (segments[0] === 'recent-changes') {
-    return {
-      tab: 'recent-changes',
-      articleKey: sanitizeArticleKey(activeArticleKey.value),
-    };
+const syncFromRoute = () => {
+  if (route.name === 'recent-changes') {
+    activeTab.value = 'recent-changes';
+    return;
   }
 
-  if (segments[0] === 'article') {
-    return {
-      tab: 'article',
-      articleKey: sanitizeArticleKey(decodeURIComponent(segments[1] ?? '')),
-    };
+  if (route.name === 'article') {
+    activeTab.value = 'article';
+    activeArticleKey.value = sanitizeArticleKey(route.params.key || defaultArticleKey);
+    return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const legacyTab = params.get('tab');
-  if (allowedTabs.has(legacyTab)) {
-    return {
-      tab: legacyTab,
-      articleKey: sanitizeArticleKey(params.get('article')),
-    };
-  }
-
-  return {
-    tab: defaultTab,
-    articleKey: sanitizeArticleKey(defaultArticleKey),
-  };
+  // default fallback
+  activeTab.value = 'article';
+  activeArticleKey.value = sanitizeArticleKey(defaultArticleKey);
 };
 
-const writeStateToUrl = (tab, articleKey, { replace = false } = {}) => {
-  const url = new URL(window.location.href);
-  const route = tab === 'article'
-    ? `/article/${encodeURIComponent(sanitizeArticleKey(articleKey))}`
-    : '/recent-changes';
-
-  url.searchParams.delete('tab');
-  url.searchParams.delete('article');
-  url.hash = route;
-
-  const method = replace ? 'replaceState' : 'pushState';
-  window.history[method]({}, '', `${url.pathname}${url.search}#${route}`);
-};
-
-const syncStateFromUrl = () => {
-  const { tab, articleKey } = readStateFromUrl();
-  activeTab.value = tab;
-
-  if (tab === 'article') {
-    activeArticleKey.value = articleKey;
-  } else if (!articles[activeArticleKey.value]) {
-    activeArticleKey.value = sanitizeArticleKey(activeArticleKey.value);
-  }
-};
-
-const handleHashChange = () => {
-  syncStateFromUrl();
-};
+watch(route, syncFromRoute, { immediate: true });
 
 const getRandomArticleKey = () => {
   if (articleKeys.length <= 1) {
@@ -107,9 +67,8 @@ const getRandomArticleKey = () => {
 
 const handleNavigate = (tab) => {
   if (tab === 'random-article') {
-    activeArticleKey.value = getRandomArticleKey();
-    activeTab.value = 'article';
-    writeStateToUrl('article', activeArticleKey.value);
+    const key = getRandomArticleKey();
+    router.push({ name: 'article', params: { key } });
     return;
   }
 
@@ -117,12 +76,13 @@ const handleNavigate = (tab) => {
     return;
   }
 
-  activeTab.value = tab;
-  if (tab === 'article') {
-    activeArticleKey.value = sanitizeArticleKey(activeArticleKey.value);
+  if (tab === 'recent-changes') {
+    router.push({ name: 'recent-changes' });
+    return;
   }
 
-  writeStateToUrl(activeTab.value, activeArticleKey.value);
+  // article
+  router.push({ name: 'article', params: { key: sanitizeArticleKey(activeArticleKey.value) } });
 };
 
 const handleOpenArticle = (articleKey) => {
@@ -130,19 +90,15 @@ const handleOpenArticle = (articleKey) => {
     return;
   }
 
-  activeTab.value = 'article';
-  activeArticleKey.value = articleKey;
-  writeStateToUrl('article', activeArticleKey.value);
+  router.push({ name: 'article', params: { key: articleKey } });
 };
 
 onMounted(() => {
-  syncStateFromUrl();
-  writeStateToUrl(activeTab.value, activeArticleKey.value, { replace: true });
-  window.addEventListener('hashchange', handleHashChange);
+  // initial sync is handled by the watcher
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('hashchange', handleHashChange);
+  // nothing special required; router takes care of history
 });
 
 const rainDrops = Array.from({ length: 67 }, (_, index) => {
