@@ -83,6 +83,14 @@ const submitSearch = () => {
   openArticleFromSearch(results.value[0].key);
 };
 
+const clearSearch = () => {
+  searchQuery.value = '';
+  results.value = [];
+  activeIndex.value = -1;
+  showResults.value = false;
+  searchInput.value?.focus?.();
+};
+
 const handleInputKeydown = (event) => {
   if (!showResults.value) return;
 
@@ -161,13 +169,25 @@ onBeforeUnmount(() => {
           <input
             ref="searchInput"
             v-model="searchQuery"
-            type="search"
+            type="text"
             class="search-input"
             placeholder="Search articles..."
             @focus="openSearchResults"
-            @input="updateDropdownPosition"
-            @keydown="handleSearchKeydown"
+            @input="() => { scheduleSearch(); updateDropdownPosition(); }"
+            @keydown="handleInputKeydown"
           />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="search-clear-btn"
+            aria-label="Clear search"
+            @click="clearSearch"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <button class="search-btn" aria-label="Search" type="submit">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
@@ -179,18 +199,19 @@ onBeforeUnmount(() => {
 
       <teleport to="body">
         <ul
-          v-if="showResults && searchTerms.length"
+          v-if="showResults && results.length"
           ref="searchDropdown"
           class="search-results"
           :style="dropdownStyle"
           role="listbox"
           aria-label="Search results"
         >
-          <li v-if="!searchResults.length" class="search-empty">No matches found.</li>
-          <li v-for="result in searchResults" :key="result.key">
+          <li v-if="!results.length" class="search-empty">No matches found.</li>
+          <li v-for="(result, idx) in results" :key="result.key">
             <button
               type="button"
               class="search-result-btn"
+              :class="{ 'active': idx === activeIndex }"
               @click="openArticleFromSearch(result.key)"
             >
               <span class="result-title">{{ result.title }}</span>
@@ -277,6 +298,11 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   color: #272020;
 }
+/* remove native browser decorations for search inputs */
+.search-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
 .search-input::placeholder { color: #9e8e8f; }
 .search-btn {
   background: none;
@@ -289,6 +315,32 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 .search-btn:hover { background: #dcd4d5; }
+
+/* Hide native search clear in WebKit/Edge and use custom button */
+.search-input::-webkit-search-decoration,
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-results-button,
+.search-input::-webkit-search-results-decoration,
+.search-input::-webkit-clear-button,
+.search-input::-ms-clear,
+.search-input::-ms-reveal {
+  display: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.search-clear-btn {
+  background: transparent;
+  border: none;
+  padding: 0 0.45rem 0 0.35rem;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  color: #272020; /* site color */
+  cursor: pointer;
+}
+.search-clear-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(39,32,32,0.08); border-radius: 6px; }
+.search-clear-btn svg { display: block; }
 
 .search-results {
   position: fixed;
