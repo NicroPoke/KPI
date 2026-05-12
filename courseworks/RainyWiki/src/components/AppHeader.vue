@@ -1,5 +1,6 @@
 ﻿<script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import Fuse from 'fuse.js';
 
 const emit = defineEmits(['navigate', 'open-article']);
 const props = defineProps({
@@ -19,66 +20,18 @@ const searchDropdown = ref(null);
 const searchQuery = ref('');
 const showResults = ref(false);
 const dropdownStyle = ref({});
+const results = ref([]);
+const activeIndex = ref(-1);
+let debounceTimer = null;
 
-const searchTerms = computed(() => (
-  searchQuery.value
-    .toLowerCase()
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-));
-
-const searchResults = computed(() => {
-  if (!searchTerms.value.length) {
-    return [];
-  }
-
-  const ranked = props.searchIndex
-    .map((article) => {
-      let score = 0;
-      const lowerTitle = article.title.toLowerCase();
-
-      const allTermsPresent = searchTerms.value.every((term) => lowerTitle.includes(term));
-      if (!allTermsPresent) {
-        return null;
-      }
-
-      searchTerms.value.forEach((term) => {
-        if (lowerTitle.includes(term)) {
-          score += 6;
-        }
-      });
-
-      return {
-        ...article,
-        score,
-      };
-    })
-    .filter(Boolean)
-    .sort((left, right) => right.score - left.score || left.title.localeCompare(right.title));
-
-  return ranked.slice(0, 7);
+const fuse = new Fuse(props.searchIndex, {
+  keys: ['title'],
+  threshold: 0.35,
+  includeScore: true,
 });
 
-const goTo = (tab) => {
-  emit('navigate', tab);
-};
-
-const openRandomArticle = () => {
-  emit('navigate', 'random-article');
-};
-
-const openArticleFromSearch = (articleKey) => {
-  emit('open-article', articleKey);
-  searchQuery.value = '';
-  showResults.value = false;
-};
-
 const updateDropdownPosition = () => {
-  if (!searchContainer.value) {
-    return;
-  }
-
+  if (!searchContainer.value) return;
   const rect = searchContainer.value.getBoundingClientRect();
   dropdownStyle.value = {
     top: `${rect.bottom + 6}px`,
@@ -87,39 +40,99 @@ const updateDropdownPosition = () => {
   };
 };
 
+const runSearch = () => {
+  const q = searchQuery.value.trim();
+  if (!q) {
+    results.value = [];
+    activeIndex.value = -1;
+    return;
+  }
+
+  const searchRes = fuse.search(q, { limit: 7 }).map(r => ({ ...r.item, score: r.score }));
+  results.value = searchRes.map((item) => ({ key: item.key, title: item.title }));
+  activeIndex.value = results.value.length ? 0 : -1;
+};
+
+const scheduleSearch = () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    runSearch();
+    showResults.value = true;
+    updateDropdownPosition();
+  }, 250);
+};
+
+const goTo = (tab) => emit('navigate', tab);
+const openRandomArticle = () => emit('navigate', 'random-article');
+
+const openArticleFromSearch = (articleKey) => {
+  emit('open-article', articleKey);
+  searchQuery.value = '';
+  results.value = [];
+  activeIndex.value = -1;
+  showResults.value = false;
+};
+
 const submitSearch = () => {
-  if (!searchResults.value.length) {
+  if (!results.value.length) {
     showResults.value = true;
     updateDropdownPosition();
     return;
   }
 
-  openArticleFromSearch(searchResults.value[0].key);
+  openArticleFromSearch(results.value[0].key);
 };
 
-const handleSearchKeydown = (event) => {
+const handleInputKeydown = (event) => {
+  if (!showResults.value) return;
+
   if (event.key === 'Escape') {
     showResults.value = false;
+    return;
   }
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    if (results.value.length === 0) return;
+    activeIndex.value = (activeIndex.value + 1) % results.value.length;
+    scrollActiveIntoView();
+    return;
+  }
+
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    if (results.value.length === 0) return;
+    activeIndex.value = (activeIndex.value - 1 + results.value.length) % results.value.length;
+    scrollActiveIntoView();
+    return;
+  }
+
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    if (activeIndex.value >= 0 && results.value[activeIndex.value]) {
+      openArticleFromSearch(results.value[activeIndex.value].key);
+    } else {
+      submitSearch();
+    }
+  }
+};
+
+const scrollActiveIntoView = () => {
+  if (!searchDropdown.value) return;
+  const el = searchDropdown.value.querySelectorAll('.search-result-btn')[activeIndex.value];
+  el?.scrollIntoView({ block: 'nearest' });
 };
 
 const openSearchResults = () => {
   showResults.value = true;
   updateDropdownPosition();
+  activeIndex.value = results.value.length ? 0 : -1;
 };
 
 const handleOutsideClick = (event) => {
-  if (searchContainer.value?.contains(event.target)) {
-    return;
-  }
-
-  if (searchDropdown.value?.contains(event.target)) {
-    return;
-  }
-
-  if (showResults.value) {
-    showResults.value = false;
-  }
+  if (searchContainer.value?.contains(event.target)) return;
+  if (searchDropdown.value?.contains(event.target)) return;
+  if (showResults.value) showResults.value = false;
 };
 
 onMounted(() => {
@@ -129,6 +142,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(debounceTimer);
   document.removeEventListener('pointerdown', handleOutsideClick);
   window.removeEventListener('resize', updateDropdownPosition);
   window.removeEventListener('scroll', updateDropdownPosition, true);
