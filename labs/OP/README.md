@@ -24,3 +24,7 @@ This folder stores all laboratory works for the course.
 	- `library/` — stream/async-iterator processing
 	- `example/main.py` — simple usage example
 	- `run_lab.py` — standalone run script
+- `lab_07/` — seventh laboratory work (Python)
+	- `library/` — reactive message communication
+	- `example/main.py` — simple usage example
+	- `run_lab.py` — standalone run script
