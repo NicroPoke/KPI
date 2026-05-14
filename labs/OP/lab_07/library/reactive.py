@@ -40,6 +40,24 @@ class EventEmitter:
             callback(payload)
 
 
+class Observable:
+    def __init__(self, subscribe_fn: Callable[[Callable[[Any], None]], Subscription]) -> None:
+        self._subscribe_fn = subscribe_fn
+
+    def subscribe(self, callback: Callable[[Any], None]) -> Subscription:
+        return self._subscribe_fn(callback)
+
+    def map(self, transform: Callable[[Any], Any]) -> "Observable":
+        def subscribe(callback: Callable[[Any], None]) -> Subscription:
+            return self.subscribe(lambda value: callback(transform(value)))
+
+        return Observable(subscribe)
+
+
+def observe(emitter: EventEmitter, event_name: str) -> Observable:
+    return Observable(lambda callback: emitter.on(event_name, callback))
+
+
 class MessageBus(EventEmitter):
     pass
 
@@ -51,6 +69,26 @@ class Sensor:
 
     def publish(self, value: int) -> None:
         self.bus.emit("reading", {"source": self.name, "value": value})
+
+
+class Display:
+    def __init__(self, name: str, bus: MessageBus) -> None:
+        self.name = name
+        self.events: list[str] = []
+        self.subscription = bus.on("reading", self._on_reading)
+
+    def _on_reading(self, payload: dict[str, Any]) -> None:
+        self.events.append(f"{self.name}:reading:{payload['source']}={payload['value']}")
+
+
+class AlertPanel:
+    def __init__(self, name: str, bus: MessageBus) -> None:
+        self.name = name
+        self.events: list[str] = []
+        self.subscription = bus.on("alert", self._on_alert)
+
+    def _on_alert(self, payload: dict[str, Any]) -> None:
+        self.events.append(f"{self.name}:alert:{payload['source']}={payload['value']}")
 
 
 class AlertRelay:
@@ -81,10 +119,8 @@ def demo_subscription_case() -> dict[str, list[str]]:
 
 def demo_reactive_chain_case() -> dict[str, list[str]]:
     bus = MessageBus()
-    events: list[str] = []
-
-    bus.on("reading", lambda payload: events.append(f"log:{payload['source']}={payload['value']}"))
-    bus.on("alert", lambda payload: events.append(f"alert:{payload['source']}={payload['value']}"))
+    display = Display("display", bus)
+    alert_panel = AlertPanel("alarm", bus)
     relay = AlertRelay(bus, threshold=50)
 
     sensor = Sensor("room-1", bus)
@@ -93,7 +129,26 @@ def demo_reactive_chain_case() -> dict[str, list[str]]:
     relay.subscription.unsubscribe()
     sensor.publish(70)
 
-    return {"events": events}
+    return {
+        "display": display.events,
+        "alarm": alert_panel.events,
+    }
+
+
+def demo_observable_case() -> dict[str, list[str]]:
+    bus = MessageBus()
+    readings: list[str] = []
+
+    stream = observe(bus, "reading").map(lambda payload: f"{payload['source']}:{payload['value']}")
+    subscription = stream.subscribe(readings.append)
+
+    sensor = Sensor("cpu", bus)
+    sensor.publish(25)
+    sensor.publish(30)
+    subscription.unsubscribe()
+    sensor.publish(35)
+
+    return {"readings": readings}
 
 
 def hello_lab() -> str:

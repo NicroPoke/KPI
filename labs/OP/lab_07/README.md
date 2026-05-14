@@ -1,4 +1,4 @@
-# Lab 07 - Reactive Communication (Phase 1)
+# Lab 07 - Reactive Communication
 
 This lab shows reactive message-based communication between entities using an
 EventEmitter-style primitive.
@@ -9,6 +9,7 @@ EventEmitter-style primitive.
 - Lets multiple listeners react to the same event independently.
 - Lets one entity react to a message and publish a new one.
 - Supports subscribe and unsubscribe.
+- Also shows an Observable-style view over bus events.
 
 ## Run
 

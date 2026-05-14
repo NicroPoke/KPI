@@ -1,7 +1,9 @@
 from .reactive import (
     EventEmitter,
     MessageBus,
+    Observable,
     Sensor,
+    demo_observable_case,
     demo_reactive_chain_case,
     demo_subscription_case,
     hello_lab,
@@ -10,7 +12,9 @@ from .reactive import (
 __all__ = [
     "EventEmitter",
     "MessageBus",
+    "Observable",
     "Sensor",
+    "demo_observable_case",
     "demo_reactive_chain_case",
     "demo_subscription_case",
     "hello_lab",
