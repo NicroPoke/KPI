@@ -28,3 +28,7 @@ This folder stores all laboratory works for the course.
 	- `library/` — reactive message communication
 	- `example/main.py` — simple usage example
 	- `run_lab.py` — standalone run script
+- `lab_08/` — eighth laboratory work (Python)
+	- `library/` — authentication proxy implementation
+	- `example/main.py` — simple usage example
+	- `run_lab.py` — standalone run script
