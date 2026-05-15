@@ -1,17 +1,32 @@
 # Lab 08 - Authentication Proxy
 
-This lab shows how to implement an authentication proxy that intercepts HTTP
-requests and injects authentication credentials.
+This lab demonstrates the Proxy pattern with dependency injection for an
+authentication layer in HTTP communication.
 
-## What it does
+## Architecture
 
-- Wraps HTTP requests with an interceptor/proxy layer.
-- Injects authentication headers before forwarding requests.
-- Supports multiple authentication methods: API Key, JWT, OAuth.
-- Provides a proxy interface for protected API calls.
-- Demonstrates request interception and credential injection.
-- Logs proxied requests and service-side deliveries.
-- Supports dynamic switching between authentication strategies.
+Three independent layers with no hard-coded dependencies:
+
+1. **BaseHttpClient** - Base HTTP abstraction, no auth knowledge.
+2. **AuthProxyClient** - Implements HttpClient, wraps another HttpClient,
+   injects auth headers, and delegates actual requests.
+3. **GitHubService** - Consumer that receives HttpClient via constructor.
+   Does not import BaseHttpClient or AuthProxyClient directly.
+
+Composition example:
+```python
+base = BaseHttpClient()
+auth = AuthProxyClient(base, JWTAuthStrategy(token))
+logging = LoggingProxyClient(auth)
+service = GitHubService(logging)
+```
+
+## Features
+
+- Multiple auth strategies (API Key, JWT, OAuth).
+- Proxy pattern with dependency injection.
+- Chaining of multiple proxies (auth → logging).
+- Dynamic strategy switching.
 
 ## Run
 

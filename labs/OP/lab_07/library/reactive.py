@@ -36,8 +36,23 @@ class EventEmitter:
             self._listeners.pop(event_name, None)
 
     def emit(self, event_name: str, payload: Any = None) -> None:
-        for callback in list(self._listeners.get(event_name, [])):
-            callback(payload)
+        callbacks = list(self._listeners.get(event_name, []))
+        if not callbacks and event_name != "error":
+            self._emit_error({"event": event_name, "message": "no listeners"})
+            return
+        for callback in callbacks:
+            try:
+                callback(payload)
+            except Exception as exc:
+                self._emit_error({"event": event_name, "error": str(exc)})
+
+    def _emit_error(self, error_payload: Any) -> None:
+        error_callbacks = list(self._listeners.get("error", []))
+        for callback in error_callbacks:
+            try:
+                callback(error_payload)
+            except Exception:
+                pass
 
 
 class Observable:
@@ -149,6 +164,44 @@ def demo_observable_case() -> dict[str, list[str]]:
     sensor.publish(35)
 
     return {"readings": readings}
+
+
+def demo_error_handling_case() -> dict[str, Any]:
+    bus = MessageBus()
+    working: list[str] = []
+    errors: list[str] = []
+
+    def broken_listener(payload: dict[str, Any]) -> None:
+        raise RuntimeError("listener crashed")
+
+    def safe_listener(payload: dict[str, Any]) -> None:
+        working.append(f"ok:{payload['value']}")
+
+    bus.on("data", broken_listener)
+    bus.on("data", safe_listener)
+    bus.on("error", lambda err: errors.append(f"caught:{err.get('error')}"))
+
+    bus.emit("data", {"value": 1})
+    bus.emit("data", {"value": 2})
+
+    return {
+        "working": working,
+        "errors": len(errors),
+    }
+
+
+def demo_no_listeners_case() -> dict[str, Any]:
+    bus = MessageBus()
+    errors: list[str] = []
+
+    bus.on("error", lambda err: errors.append(f"error:{err['message']}"))
+    bus.emit("orphan_event", {"data": "test"})
+    bus.emit("orphan_event", {"data": "test2"})
+
+    return {
+        "error_count": len(errors),
+        "error_messages": errors,
+    }
 
 
 def hello_lab() -> str:
