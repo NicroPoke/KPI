@@ -32,3 +32,7 @@ This folder stores all laboratory works for the course.
 	- `library/` — authentication proxy implementation
 	- `example/main.py` — simple usage example
 	- `run_lab.py` — standalone run script
+- `lab_09/` — ninth laboratory work (Python)
+	- `library/` — logging decorator with configurable levels
+	- `example/main.py` — simple usage example
+	- `run_lab.py` — standalone run script

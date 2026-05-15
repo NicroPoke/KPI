@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "op-lab-09"
+version = "0.1.0"
+description = "Fundamentals of Programming: Lab 09"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Ivan Shevchuk" }
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["library*"]
