@@ -55,22 +55,45 @@ class OAuthAuthStrategy(AuthStrategy):
         return request
 
 
+class ApiService:
+    def __init__(self, base_url: str) -> None:
+        self.base_url = base_url
+        self.request_log: list[dict[str, Any]] = []
+
+    def handle(self, request: Request) -> dict[str, Any]:
+        self.request_log.append(request.to_dict())
+        return {
+            "status": "ok",
+            "service": self.base_url,
+            "url": request.url,
+            "headers": request.headers,
+            "body": request.body,
+        }
+
+    def get_log(self) -> list[dict[str, Any]]:
+        return self.request_log
+
+
 class AuthProxy:
-    def __init__(self, base_url: str, strategy: AuthStrategy) -> None:
+    def __init__(self, base_url: str, strategy: AuthStrategy, service: ApiService | None = None) -> None:
         self.base_url = base_url
         self.strategy = strategy
+        self.service = service or ApiService(base_url)
         self.request_log: list[dict[str, Any]] = []
+        self.monitor: dict[str, int] = {"requests": 0, "forwarded": 0}
+
+    def switch_strategy(self, strategy: AuthStrategy) -> None:
+        self.strategy = strategy
 
     def request(self, method: str, endpoint: str, body: Any = None) -> dict[str, Any]:
         url = f"{self.base_url}{endpoint}"
         req = Request(method=method, url=url, headers={}, body=body)
         req = self.strategy.apply(req)
         self.request_log.append(req.to_dict())
-        return {
-            "status": "sent",
-            "url": req.url,
-            "headers": req.headers,
-        }
+        self.monitor["requests"] += 1
+        self.monitor["forwarded"] += 1
+        response = self.service.handle(req)
+        return response
 
     def get(self, endpoint: str) -> dict[str, Any]:
         return self.request("GET", endpoint)
@@ -80,6 +103,9 @@ class AuthProxy:
 
     def get_log(self) -> list[dict[str, Any]]:
         return self.request_log
+
+    def get_monitor(self) -> dict[str, int]:
+        return dict(self.monitor)
 
 
 def demo_api_key_case() -> dict[str, Any]:
@@ -92,6 +118,7 @@ def demo_api_key_case() -> dict[str, Any]:
     return {
         "requests": len(proxy.get_log()),
         "last_headers": proxy.get_log()[-1]["headers"],
+        "monitor": proxy.get_monitor(),
     }
 
 
@@ -105,6 +132,7 @@ def demo_jwt_case() -> dict[str, Any]:
     return {
         "requests": len(proxy.get_log()),
         "last_headers": proxy.get_log()[-1]["headers"],
+        "monitor": proxy.get_monitor(),
     }
 
 
@@ -118,6 +146,25 @@ def demo_oauth_case() -> dict[str, Any]:
     return {
         "requests": len(proxy.get_log()),
         "first_headers": proxy.get_log()[0]["headers"],
+        "monitor": proxy.get_monitor(),
+    }
+
+
+def demo_strategy_switch_case() -> dict[str, Any]:
+    proxy = AuthProxy(
+        "https://api.example.com",
+        APIKeyAuthStrategy(api_key="key-1"),
+    )
+
+    first_response = proxy.get("/switch")
+    proxy.switch_strategy(JWTAuthStrategy(token="token-2"))
+    second_response = proxy.get("/switch")
+
+    return {
+        "first_headers": first_response["headers"],
+        "second_headers": second_response["headers"],
+        "service_log": proxy.service.get_log(),
+        "monitor": proxy.get_monitor(),
     }
 
 

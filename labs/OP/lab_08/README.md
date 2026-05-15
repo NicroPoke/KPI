@@ -5,10 +5,13 @@ requests and injects authentication credentials.
 
 ## What it does
 
-- Wraps HTTP requests with authentication headers.
+- Wraps HTTP requests with an interceptor/proxy layer.
+- Injects authentication headers before forwarding requests.
 - Supports multiple authentication methods: API Key, JWT, OAuth.
 - Provides a proxy interface for protected API calls.
 - Demonstrates request interception and credential injection.
+- Logs proxied requests and service-side deliveries.
+- Supports dynamic switching between authentication strategies.
 
 ## Run
 
