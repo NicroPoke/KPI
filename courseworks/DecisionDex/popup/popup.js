@@ -1,6 +1,10 @@
 const statusNode = document.getElementById("status");
 const myTeamNode = document.getElementById("myTeam");
 const enemyTeamNode = document.getElementById("enemyTeam");
+const leadNameNode = document.getElementById("leadName");
+const leadScoreNode = document.getElementById("leadScore");
+const leadReasonsNode = document.getElementById("leadReasons");
+const rankingListNode = document.getElementById("rankingList");
 let activeTabId = null;
 
 const contract = window.DecisionDexContract;
@@ -49,6 +53,43 @@ function requestBackground(message) {
 
       resolve(response);
     });
+  });
+}
+
+function renderLeadRecommendation(recommendation) {
+  if (!recommendation || !recommendation.ok) {
+    leadNameNode.textContent = "-";
+    leadScoreNode.textContent = "";
+    leadReasonsNode.innerHTML = "";
+    rankingListNode.innerHTML = "";
+    return;
+  }
+
+  var lead = recommendation.recommendedLead;
+  leadNameNode.textContent = lead.name;
+  leadScoreNode.textContent = "Score: " + lead.score;
+
+  leadReasonsNode.innerHTML = "";
+  (lead.reasoning || []).forEach(function (reason) {
+    var li = document.createElement("li");
+    li.textContent = reason;
+    leadReasonsNode.appendChild(li);
+  });
+
+  rankingListNode.innerHTML = "";
+  (recommendation.ranking || []).forEach(function (row, index) {
+    var item = document.createElement("article");
+    item.className = "ranking-item";
+
+    var left = document.createElement("strong");
+    left.textContent = index + 1 + ". " + row.name;
+
+    var right = document.createElement("span");
+    right.textContent = row.score;
+
+    item.appendChild(left);
+    item.appendChild(right);
+    rankingListNode.appendChild(item);
   });
 }
 
@@ -104,7 +145,14 @@ async function scanBattle() {
 
     renderTeam(myTeamNode, playerTeam);
     renderTeam(enemyTeamNode, opponentTeam);
-    setStatus(`Ready · ${payload?.schemaVersion || contract.SCHEMA_VERSION}`);
+    const recommendationResponse = await requestBackground({ type: contract.MESSAGE_TYPES.GET_LEAD_RECOMMENDATION });
+    if (recommendationResponse?.ok && recommendationResponse?.recommendation) {
+      renderLeadRecommendation(recommendationResponse.recommendation);
+      setStatus(`Ready · ${payload?.schemaVersion || contract.SCHEMA_VERSION}`);
+    } else {
+      renderLeadRecommendation(null);
+      setStatus((recommendationResponse && recommendationResponse.error) || "Recommendation unavailable", true);
+    }
 
     await requestBackground({ type: contract.MESSAGE_TYPES.ENABLE_AUTO_BATTLE_WATCH });
   } catch (error) {

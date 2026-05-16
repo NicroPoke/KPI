@@ -7,4 +7,5 @@ var DecisionDexCore = {
   Events: Events,
   AuthProxy: AuthProxy,
   Logger: Logger,
+  ScoringEngine: ScoringEngine,
 };

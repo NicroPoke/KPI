@@ -34,6 +34,7 @@
         "core/events.js",
         "core/authProxy.js",
         "core/logger.js",
+        "core/scoringEngine.js",
         "core/index.js",
         "content.js"
       ]

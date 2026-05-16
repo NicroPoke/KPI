@@ -1,17 +1,10 @@
 ﻿<script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import Fuse from 'fuse.js';
 
 const emit = defineEmits(['navigate', 'open-article']);
 const props = defineProps({
-  activeTab: {
-    type: String,
-    default: 'article',
-  },
-  searchIndex: {
-    type: Array,
-    default: () => [],
-  },
+  activeTab: { type: String, default: 'article' },
+  searchIndex: { type: Array, default: () => [] },
 });
 
 const searchContainer = ref(null);
@@ -24,49 +17,34 @@ const results = ref([]);
 const activeIndex = ref(-1);
 let debounceTimer = null;
 
-const fuse = new Fuse(props.searchIndex, {
-  keys: ['title'],
-  threshold: 0.35,
-  includeScore: true,
-});
-
-const updateDropdownPosition = () => {
-  if (!searchContainer.value) return;
-  const rect = searchContainer.value.getBoundingClientRect();
-  dropdownStyle.value = {
-    top: `${rect.bottom + 6}px`,
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
-  };
-};
-
-const runSearch = () => {
-  const q = searchQuery.value.trim();
-  if (!q) {
-    results.value = [];
-    activeIndex.value = -1;
-    return;
-  }
-
-  const searchRes = fuse.search(q, { limit: 7 }).map(r => ({ ...r.item, score: r.score }));
-  results.value = searchRes.map((item) => ({ key: item.key, title: item.title }));
-  activeIndex.value = results.value.length ? 0 : -1;
-};
+const searchTerms = computed(() => searchQuery.value.toLowerCase().trim().split(/\s+/).filter(Boolean));
 
 const scheduleSearch = () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    runSearch();
-    showResults.value = true;
-    updateDropdownPosition();
-  }, 250);
+    const terms = searchTerms.value;
+    if (!terms.length) {
+      results.value = [];
+      return;
+    }
+    results.value = props.searchIndex
+      .filter(a => terms.every(t => a.title.toLowerCase().includes(t)))
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .slice(0, 7);
+  }, 180);
+};
+
+const updateDropdownPosition = () => {
+  if (!searchContainer.value) return;
+  const rect = searchContainer.value.getBoundingClientRect();
+  dropdownStyle.value = { top: `${rect.bottom + 6}px`, left: `${rect.left}px`, width: `${rect.width}px` };
 };
 
 const goTo = (tab) => emit('navigate', tab);
 const openRandomArticle = () => emit('navigate', 'random-article');
 
-const openArticleFromSearch = (articleKey) => {
-  emit('open-article', articleKey);
+const openArticleFromSearch = (key) => {
+  emit('open-article', key);
   searchQuery.value = '';
   results.value = [];
   activeIndex.value = -1;
@@ -79,7 +57,6 @@ const submitSearch = () => {
     updateDropdownPosition();
     return;
   }
-
   openArticleFromSearch(results.value[0].key);
 };
 
@@ -91,38 +68,12 @@ const clearSearch = () => {
   searchInput.value?.focus?.();
 };
 
-const handleInputKeydown = (event) => {
+const handleInputKeydown = (e) => {
   if (!showResults.value) return;
-
-  if (event.key === 'Escape') {
-    showResults.value = false;
-    return;
-  }
-
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    if (results.value.length === 0) return;
-    activeIndex.value = (activeIndex.value + 1) % results.value.length;
-    scrollActiveIntoView();
-    return;
-  }
-
-  if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    if (results.value.length === 0) return;
-    activeIndex.value = (activeIndex.value - 1 + results.value.length) % results.value.length;
-    scrollActiveIntoView();
-    return;
-  }
-
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    if (activeIndex.value >= 0 && results.value[activeIndex.value]) {
-      openArticleFromSearch(results.value[activeIndex.value].key);
-    } else {
-      submitSearch();
-    }
-  }
+  if (e.key === 'Escape') { showResults.value = false; return; }
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (!results.value.length) return; activeIndex.value = (activeIndex.value + 1) % results.value.length; scrollActiveIntoView(); return; }
+  if (e.key === 'ArrowUp') { e.preventDefault(); if (!results.value.length) return; activeIndex.value = (activeIndex.value - 1 + results.value.length) % results.value.length; scrollActiveIntoView(); return; }
+  if (e.key === 'Enter') { e.preventDefault(); if (activeIndex.value >= 0 && results.value[activeIndex.value]) openArticleFromSearch(results.value[activeIndex.value].key); else submitSearch(); }
 };
 
 const scrollActiveIntoView = () => {
@@ -131,30 +82,13 @@ const scrollActiveIntoView = () => {
   el?.scrollIntoView({ block: 'nearest' });
 };
 
-const openSearchResults = () => {
-  showResults.value = true;
-  updateDropdownPosition();
-  activeIndex.value = results.value.length ? 0 : -1;
-};
+const openSearchResults = () => { showResults.value = true; updateDropdownPosition(); activeIndex.value = results.value.length ? 0 : -1; };
 
-const handleOutsideClick = (event) => {
-  if (searchContainer.value?.contains(event.target)) return;
-  if (searchDropdown.value?.contains(event.target)) return;
-  if (showResults.value) showResults.value = false;
-};
+const handleOutsideClick = (ev) => { if (searchContainer.value?.contains(ev.target)) return; if (searchDropdown.value?.contains(ev.target)) return; if (showResults.value) showResults.value = false; };
 
-onMounted(() => {
-  document.addEventListener('pointerdown', handleOutsideClick);
-  window.addEventListener('resize', updateDropdownPosition);
-  window.addEventListener('scroll', updateDropdownPosition, true);
-});
+onMounted(() => { document.addEventListener('pointerdown', handleOutsideClick); window.addEventListener('resize', updateDropdownPosition); window.addEventListener('scroll', updateDropdownPosition, true); });
 
-onBeforeUnmount(() => {
-  clearTimeout(debounceTimer);
-  document.removeEventListener('pointerdown', handleOutsideClick);
-  window.removeEventListener('resize', updateDropdownPosition);
-  window.removeEventListener('scroll', updateDropdownPosition, true);
-});
+onBeforeUnmount(() => { clearTimeout(debounceTimer); document.removeEventListener('pointerdown', handleOutsideClick); window.removeEventListener('resize', updateDropdownPosition); window.removeEventListener('scroll', updateDropdownPosition, true); });
 </script>
 
 <template>
@@ -230,9 +164,6 @@ onBeforeUnmount(() => {
         <a href="#" class="nav-item" :class="{ active: activeTab === 'recent-changes' }" @click.prevent="goTo('recent-changes')">
           <strong>Recent changes</strong> 
         </a>
-        <a href="#" class="nav-item">
-          <strong>Help</strong>
-        </a>
       </nav>
     </div>
   </header>
@@ -298,7 +229,6 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
   color: #272020;
 }
-/* remove native browser decorations for search inputs */
 .search-input {
   -webkit-appearance: none;
   appearance: none;
@@ -316,7 +246,6 @@ onBeforeUnmount(() => {
 }
 .search-btn:hover { background: #dcd4d5; }
 
-/* Hide native search clear in WebKit/Edge and use custom button */
 .search-input::-webkit-search-decoration,
 .search-input::-webkit-search-cancel-button,
 .search-input::-webkit-search-results-button,
@@ -336,7 +265,7 @@ onBeforeUnmount(() => {
   margin: 0;
   display: inline-flex;
   align-items: center;
-  color: #272020; /* site color */
+  color: #272020;
   cursor: pointer;
 }
 .search-clear-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(39,32,32,0.08); border-radius: 6px; }

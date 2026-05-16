@@ -7,6 +7,7 @@ importScripts("core/streamProcessor.js");
 importScripts("core/events.js");
 importScripts("core/authProxy.js");
 importScripts("core/logger.js");
+importScripts("core/scoringEngine.js");
 importScripts("core/index.js");
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -145,6 +146,28 @@ async function setAutoBattleWatch(enabled) {
   );
 }
 
+async function getLeadRecommendation() {
+  var battleResponse = await getBattleTeams();
+
+  if (!battleResponse || !battleResponse.ok || !battleResponse.payload) {
+    return {
+      ok: false,
+      error: battleResponse && battleResponse.error ? battleResponse.error : "Could not read battle state for recommendation.",
+    };
+  }
+
+  var recommendation = ScoringEngine.recommendLead(battleResponse.payload);
+  if (!recommendation.ok) {
+    return recommendation;
+  }
+
+  return {
+    ok: true,
+    battleState: battleResponse.payload,
+    recommendation: recommendation,
+  };
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "PING") {
     sendResponse({ ok: true, source: "background" });
@@ -153,6 +176,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message?.type === DecisionDexContract.MESSAGE_TYPES.GET_BATTLE_TEAMS) {
     getBattleTeams()
+      .then((response) => sendResponse(response))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type === DecisionDexContract.MESSAGE_TYPES.GET_LEAD_RECOMMENDATION) {
+    getLeadRecommendation()
       .then((response) => sendResponse(response))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;

@@ -13,6 +13,7 @@
     <script src="../core/events.js"></script>
     <script src="../core/authProxy.js"></script>
     <script src="../core/logger.js"></script>
+    <script src="../core/scoringEngine.js"></script>
     <script src="../core/index.js"></script>
     <link rel="stylesheet" href="popup.css" />
   </head>
@@ -31,6 +32,20 @@
       <section class="team-section">
         <h2>Enemy Team</h2>
         <div id="enemyTeam" class="team-grid"></div>
+      </section>
+
+      <section class="team-section">
+        <h2>Recommended Lead</h2>
+        <article id="leadCard" class="lead-card">
+          <h3 id="leadName">-</h3>
+          <p id="leadScore" class="lead-score"></p>
+          <ul id="leadReasons" class="lead-reasons"></ul>
+        </article>
+      </section>
+
+      <section class="team-section">
+        <h2>Lead Ranking</h2>
+        <div id="rankingList" class="ranking-list"></div>
       </section>
     </main>
 

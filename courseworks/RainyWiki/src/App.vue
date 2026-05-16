@@ -48,7 +48,6 @@ const syncFromRoute = () => {
     return;
   }
 
-  // default fallback
   activeTab.value = 'article';
   activeArticleKey.value = sanitizeArticleKey(defaultArticleKey);
 };
@@ -81,7 +80,6 @@ const handleNavigate = (tab) => {
     return;
   }
 
-  // article
   router.push({ name: 'article', params: { key: sanitizeArticleKey(activeArticleKey.value) } });
 };
 
@@ -93,13 +91,7 @@ const handleOpenArticle = (articleKey) => {
   router.push({ name: 'article', params: { key: articleKey } });
 };
 
-onMounted(() => {
-  // initial sync is handled by the watcher
-});
 
-onBeforeUnmount(() => {
-  // nothing special required; router takes care of history
-});
 
 const rainDrops = Array.from({ length: 67 }, (_, index) => {
   const left = (index * 4.9) % 100
