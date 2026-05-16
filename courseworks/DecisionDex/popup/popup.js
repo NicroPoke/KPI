@@ -116,7 +116,6 @@ async function disableAutoWatchOnClose() {
   try {
     await requestBackground({ type: contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH });
   } catch (error) {
-    // Ignore cleanup errors when popup closes.
   }
 }
 

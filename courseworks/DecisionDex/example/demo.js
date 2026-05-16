@@ -1,9 +1,3 @@
-/**
- * DecisionDex Core Example / Demo
- * This file demonstrates how to use each core module
- */
-
-// Example: Generator - cyclic traversal
 function demoGenerator() {
   console.log("=== Demo: Generator ===");
 
@@ -18,7 +12,6 @@ function demoGenerator() {
     }
   }
 
-  // Timeout iterator
   var rangeGen = Generator.range(1, 100);
   console.log("\nTimeout iterator (100ms budget):");
   var count = Generator.consumeWithTimeout(rangeGen, 100, function (value, idx) {
@@ -29,14 +22,12 @@ function demoGenerator() {
   console.log("  Processed " + count + " items in timeout");
 }
 
-// Example: Memoization
 function demoMemoization() {
   console.log("\n=== Demo: Memoization ===");
 
   var callCount = 0;
   function expensiveTypeCheck(poke1, poke2) {
     callCount++;
-    // Simulate expensive computation
     return poke1.type === poke2.type ? "same" : "different";
   }
 
@@ -51,7 +42,6 @@ function demoMemoization() {
   console.log("  Result: " + result2 + ", calls: " + callCount);
 }
 
-// Example: Priority Queue
 function demoPriorityQueue() {
   console.log("\n=== Demo: Priority Queue ===");
 
@@ -67,7 +57,6 @@ function demoPriorityQueue() {
   console.log("  Lead: " + queue.dequeue("highest"));
 }
 
-// Example: Async Utils
 function demoAsyncUtils() {
   console.log("\n=== Demo: Async Utils ===");
 
@@ -87,7 +76,6 @@ function demoAsyncUtils() {
     });
 }
 
-// Example: Stream Processor
 function demoStreamProcessor() {
   console.log("\n=== Demo: Stream Processor ===");
 
@@ -116,7 +104,6 @@ function demoStreamProcessor() {
   );
 }
 
-// Example: Events / EventEmitter
 function demoEvents() {
   console.log("\n=== Demo: Events ===");
 
@@ -135,7 +122,6 @@ function demoEvents() {
   emitter.emit("team-change", { pokemon: "Garchomp" });
 }
 
-// Example: Auth Proxy
 function demoAuthProxy() {
   console.log("\n=== Demo: Auth Proxy ===");
 
@@ -147,7 +133,6 @@ function demoAuthProxy() {
   console.log("(Note: fetch example would require network access)");
 }
 
-// Example: Logger
 function demoLogger() {
   console.log("\n=== Demo: Logger ===");
 
@@ -165,7 +150,6 @@ function demoLogger() {
   console.log("Total logs captured: " + logs.length);
 }
 
-// Run all demos
 console.log("DecisionDex Core Module Examples\n");
 demoGenerator();
 demoMemoization();

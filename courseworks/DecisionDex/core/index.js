@@ -1,6 +1,3 @@
-// Core module exports
-// Load all core utilities and make them available globally
-
 var DecisionDexCore = {
   Generator: Generator,
   Memoization: Memoization,

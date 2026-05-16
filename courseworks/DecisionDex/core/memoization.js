@@ -1,92 +1,157 @@
-// Task 3: Memoization System
-
 var Memoization = {
-  // Simple LRU cache
-  createLRU: function (fn, maxSize) {
-    var cache = {};
-    var order = [];
-    maxSize = maxSize || 100;
+  memoize: function (fn, options) {
+    options = options || {};
+    var maxSize = options.maxSize == null ? null : options.maxSize;
+    var policy = (options.policy || options.strategy || "lru").toLowerCase();
+    var ttlSeconds = options.ttlSeconds == null ? options.ttl : options.ttlSeconds;
+    var customEvictor = options.customEvictor || null;
 
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-      var key = JSON.stringify(args);
+    if (maxSize !== null && maxSize < 1) {
+      throw new Error("maxSize must be null or a positive integer");
+    }
+    if (["lru", "lfu", "ttl", "custom"].indexOf(policy) === -1) {
+      throw new Error("policy must be one of: lru, lfu, ttl, custom");
+    }
+    if (ttlSeconds != null && ttlSeconds <= 0) {
+      throw new Error("ttlSeconds must be positive");
+    }
+    if (policy === "ttl" && ttlSeconds == null) {
+      throw new Error("ttlSeconds is required when policy='ttl'");
+    }
+    if (policy === "custom" && !customEvictor) {
+      throw new Error("customEvictor is required when policy='custom'");
+    }
 
-      if (cache.hasOwnProperty(key)) {
-        // Move to end (most recently used)
-        var idx = order.indexOf(key);
-        if (idx > -1) {
-          order.splice(idx, 1);
+    var cache = new Map();
+
+    function makeKey(args, kwargs) {
+      return JSON.stringify([args, kwargs]);
+    }
+
+    function parseKey(key) {
+      try {
+        var parsed = JSON.parse(key);
+        return { args: parsed[0] || [], kwargs: parsed[1] || {} };
+      } catch (e) {
+        return { args: [], kwargs: {} };
+      }
+    }
+
+    function isExpired(entry, now) {
+      if (policy !== "ttl" || ttlSeconds == null) {
+        return false;
+      }
+      return now - entry.createdAt >= ttlSeconds * 1000;
+    }
+
+    function pruneExpired(now) {
+      if (policy !== "ttl" || ttlSeconds == null) {
+        return;
+      }
+      var toDelete = [];
+      cache.forEach(function (entry, key) {
+        if (isExpired(entry, now)) {
+          toDelete.push(key);
         }
-        order.push(key);
-        return cache[key];
+      });
+      toDelete.forEach(function (key) {
+        cache.delete(key);
+      });
+    }
+
+    function evictOne() {
+      if (cache.size === 0) {
+        return;
       }
 
-      var result = fn.apply(this, args);
-      cache[key] = result;
-      order.push(key);
+      var keyToRemove = null;
 
-      // Evict oldest if over size
-      if (order.length > maxSize) {
-        var oldestKey = order.shift();
-        delete cache[oldestKey];
-      }
-
-      return result;
-    };
-  },
-
-  // Simple LFU cache (least frequently used)
-  createLFU: function (fn, maxSize) {
-    var cache = {};
-    var frequency = {};
-    maxSize = maxSize || 100;
-
-    return function () {
-      var args = Array.prototype.slice.call(arguments);
-      var key = JSON.stringify(args);
-
-      if (cache.hasOwnProperty(key)) {
-        frequency[key] = (frequency[key] || 0) + 1;
-        return cache[key];
-      }
-
-      var result = fn.apply(this, args);
-      cache[key] = result;
-      frequency[key] = 1;
-
-      if (Object.keys(cache).length > maxSize) {
-        // Find least frequently used
-        var leastKey = Object.keys(frequency).reduce(function (a, b) {
-          return frequency[a] < frequency[b] ? a : b;
+      if (policy === "lru") {
+        cache.forEach(function (entry, key) {
+          if (!keyToRemove || entry.lastAccess < cache.get(keyToRemove).lastAccess) {
+            keyToRemove = key;
+          }
         });
-        delete cache[leastKey];
-        delete frequency[leastKey];
+      } else if (policy === "lfu") {
+        cache.forEach(function (entry, key) {
+          if (!keyToRemove) {
+            keyToRemove = key;
+            return;
+          }
+          var current = cache.get(keyToRemove);
+          if (
+            entry.accessCount < current.accessCount ||
+            (entry.accessCount === current.accessCount && entry.lastAccess < current.lastAccess)
+          ) {
+            keyToRemove = key;
+          }
+        });
+      } else if (policy === "ttl") {
+        cache.forEach(function (entry, key) {
+          if (!keyToRemove || entry.createdAt < cache.get(keyToRemove).createdAt) {
+            keyToRemove = key;
+          }
+        });
+      } else {
+        var snapshot = {};
+        cache.forEach(function (entry, key) {
+          snapshot[key] = {
+            value: entry.value,
+            createdAt: entry.createdAt,
+            lastAccess: entry.lastAccess,
+            accessCount: entry.accessCount,
+            keyData: parseKey(key),
+          };
+        });
+        var customKey = customEvictor ? customEvictor(snapshot) : null;
+        if (customKey && cache.has(customKey)) {
+          keyToRemove = customKey;
+        }
       }
 
-      return result;
-    };
-  },
+      if (!keyToRemove) {
+        cache.forEach(function (_entry, key) {
+          if (!keyToRemove) {
+            keyToRemove = key;
+          }
+        });
+      }
 
-  // Simple TTL cache (time to live)
-  createTTL: function (fn, ttlMs) {
-    var cache = {};
-    ttlMs = ttlMs || 60000; // default 1 minute
+      if (keyToRemove) {
+        cache.delete(keyToRemove);
+      }
+    }
 
     return function () {
       var args = Array.prototype.slice.call(arguments);
-      var key = JSON.stringify(args);
+      var kwargs = {};
       var now = Date.now();
 
-      if (cache.hasOwnProperty(key) && cache[key].expiry > now) {
-        return cache[key].value;
+      pruneExpired(now);
+
+      var key = makeKey(args, kwargs);
+      if (cache.has(key)) {
+        var entry = cache.get(key);
+        if (!isExpired(entry, now)) {
+          entry.lastAccess = now;
+          entry.accessCount += 1;
+          return entry.value;
+        }
+        cache.delete(key);
       }
 
       var result = fn.apply(this, args);
-      cache[key] = {
-        value: result,
-        expiry: now + ttlMs,
-      };
 
+      while (maxSize !== null && cache.size >= maxSize) {
+        evictOne();
+      }
+
+      cache.set(key, {
+        value: result,
+        createdAt: now,
+        lastAccess: now,
+        accessCount: 1,
+      });
       return result;
     };
   },

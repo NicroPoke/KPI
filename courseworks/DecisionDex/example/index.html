@@ -59,7 +59,6 @@
   <h2>Output:</h2>
   <pre id="output"></pre>
 
-  <!-- Load all core modules -->
   <script src="../core/generator.js"></script>
   <script src="../core/memoization.js"></script>
   <script src="../core/priorityQueue.js"></script>
@@ -70,7 +69,6 @@
   <script src="../core/logger.js"></script>
   <script src="../core/index.js"></script>
 
-  <!-- Demo script -->
   <script>
     var output = document.getElementById("output");
     var originalLog = console.log;
@@ -96,7 +94,6 @@
       clearOutput();
       captureLog();
 
-      // Run minimal demo
       try {
         console.log("=== Generator Demo ===");
         var leads = ["Garchomp", "Dragapult"];

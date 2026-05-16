@@ -1,92 +1,110 @@
-// Task 4: Bi-Directional Priority Queue
+function BiDirectionalPriorityQueue() {
+  this._rows = [];
+  this._orderCounter = 0;
+}
+
+BiDirectionalPriorityQueue.prototype.enqueue = function (item, priority) {
+  this._rows.push({
+    item: item,
+    priority: priority,
+    order: this._orderCounter,
+  });
+  this._orderCounter += 1;
+};
+
+BiDirectionalPriorityQueue.prototype.isEmpty = function () {
+  return this._rows.length === 0;
+};
+
+BiDirectionalPriorityQueue.prototype.length = function () {
+  return this._rows.length;
+};
+
+BiDirectionalPriorityQueue.prototype._resolveMode = function (opts) {
+  opts = opts || {};
+  var selected = [];
+  if (opts.highest) {
+    selected.push("highest");
+  }
+  if (opts.lowest) {
+    selected.push("lowest");
+  }
+  if (opts.oldest) {
+    selected.push("oldest");
+  }
+  if (opts.newest) {
+    selected.push("newest");
+  }
+
+  if (selected.length > 1) {
+    throw new Error("Choose exactly one mode: highest/lowest/oldest/newest");
+  }
+  return selected.length === 1 ? selected[0] : "highest";
+};
+
+BiDirectionalPriorityQueue.prototype._findIndex = function (mode) {
+  if (this.isEmpty()) {
+    throw new Error("Queue is empty");
+  }
+
+  var i;
+  var bestIndex = 0;
+
+  if (mode === "highest") {
+    for (i = 1; i < this._rows.length; i++) {
+      var a = this._rows[i];
+      var b = this._rows[bestIndex];
+      if (a.priority > b.priority || (a.priority === b.priority && a.order < b.order)) {
+        bestIndex = i;
+      }
+    }
+    return bestIndex;
+  }
+
+  if (mode === "lowest") {
+    for (i = 1; i < this._rows.length; i++) {
+      var c = this._rows[i];
+      var d = this._rows[bestIndex];
+      if (c.priority < d.priority || (c.priority === d.priority && c.order < d.order)) {
+        bestIndex = i;
+      }
+    }
+    return bestIndex;
+  }
+
+  if (mode === "oldest") {
+    for (i = 1; i < this._rows.length; i++) {
+      if (this._rows[i].order < this._rows[bestIndex].order) {
+        bestIndex = i;
+      }
+    }
+    return bestIndex;
+  }
+
+  for (i = 1; i < this._rows.length; i++) {
+    if (this._rows[i].order > this._rows[bestIndex].order) {
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+};
+
+BiDirectionalPriorityQueue.prototype.peek = function (opts) {
+  var mode = this._resolveMode(opts);
+  var idx = this._findIndex(mode);
+  return this._rows[idx].item;
+};
+
+BiDirectionalPriorityQueue.prototype.dequeue = function (opts) {
+  var mode = this._resolveMode(opts);
+  var idx = this._findIndex(mode);
+  var row = this._rows.splice(idx, 1)[0];
+  return row.item;
+};
 
 var PriorityQueue = {
+  BiDirectionalPriorityQueue: BiDirectionalPriorityQueue,
   create: function () {
-    var items = [];
-
-    return {
-      enqueue: function (item, priority) {
-        items.push({ item: item, priority: priority, timestamp: Date.now() });
-        // Sort by priority (lower number = higher priority)
-        items.sort(function (a, b) {
-          return a.priority - b.priority;
-        });
-      },
-
-      dequeue: function (mode) {
-        if (items.length === 0) {
-          return null;
-        }
-
-        mode = mode || "highest";
-
-        var removed;
-        if (mode === "highest") {
-          removed = items.shift();
-        } else if (mode === "lowest") {
-          removed = items.pop();
-        } else if (mode === "oldest") {
-          // Find oldest by timestamp
-          var oldestIdx = 0;
-          for (var i = 1; i < items.length; i++) {
-            if (items[i].timestamp < items[oldestIdx].timestamp) {
-              oldestIdx = i;
-            }
-          }
-          removed = items.splice(oldestIdx, 1)[0];
-        } else if (mode === "newest") {
-          // Find newest by timestamp
-          var newestIdx = 0;
-          for (var i = 1; i < items.length; i++) {
-            if (items[i].timestamp > items[newestIdx].timestamp) {
-              newestIdx = i;
-            }
-          }
-          removed = items.splice(newestIdx, 1)[0];
-        }
-
-        return removed ? removed.item : null;
-      },
-
-      peek: function (mode) {
-        if (items.length === 0) {
-          return null;
-        }
-
-        mode = mode || "highest";
-
-        if (mode === "highest") {
-          return items[0].item;
-        } else if (mode === "lowest") {
-          return items[items.length - 1].item;
-        } else if (mode === "oldest") {
-          var oldestIdx = 0;
-          for (var i = 1; i < items.length; i++) {
-            if (items[i].timestamp < items[oldestIdx].timestamp) {
-              oldestIdx = i;
-            }
-          }
-          return items[oldestIdx].item;
-        } else if (mode === "newest") {
-          var newestIdx = 0;
-          for (var i = 1; i < items.length; i++) {
-            if (items[i].timestamp > items[newestIdx].timestamp) {
-              newestIdx = i;
-            }
-          }
-          return items[newestIdx].item;
-        }
-
-        return null;
-      },
-
-      size: function () {
-        return items.length;
-      },
-
-      clear: function () {
-        items = [];
-      },
-    };
+    return new BiDirectionalPriorityQueue();
   },
 };

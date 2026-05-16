@@ -1,54 +1,73 @@
-// Task 1: Generators and Iterators
-
 var Generator = {
-  // Infinite round-robin generator
-  roundRobin: function (list) {
-    var i = 0;
-    return {
-      next: function () {
-        if (!list || list.length === 0) {
-          return { done: true, value: null };
-        }
-        var value = list[i % list.length];
-        i++;
-        return { done: false, value: value };
-      },
-    };
+  fibonacciGenerator: function* () {
+    var first = 0;
+    var second = 1;
+    while (true) {
+      yield first;
+      var next = first + second;
+      first = second;
+      second = next;
+    }
   },
 
-  // Timeout-based iterator: consume values from an iterator within a time budget
-  consumeWithTimeout: function (iterator, timeoutMs, onValue) {
-    var startTime = Date.now();
-    var count = 0;
+  consumeWithTimeout: async function (iterator, timeoutSeconds, iterationDelaySeconds) {
+    iterationDelaySeconds = typeof iterationDelaySeconds === "number" ? iterationDelaySeconds : 0.2;
 
-    while (Date.now() - startTime < timeoutMs) {
+    if (iterationDelaySeconds < 0) {
+      throw new Error("iterationDelaySeconds must be >= 0");
+    }
+
+    if (timeoutSeconds <= 0) {
+      return 0;
+    }
+
+    var deadline = Date.now() + timeoutSeconds * 1000;
+    var consumedCount = 0;
+    var numericCount = 0;
+    var numericTotal = 0;
+
+    while (Date.now() < deadline) {
       var result = iterator.next();
       if (result.done) {
         break;
       }
 
-      if (onValue) {
-        onValue(result.value, count);
+      consumedCount += 1;
+      var value = result.value;
+
+      if (typeof value === "number" && Number.isFinite(value)) {
+        numericCount += 1;
+        numericTotal += value;
+        var numericAvg = numericTotal / numericCount;
+        console.log(
+          "#" +
+            consumedCount +
+            ": " +
+            value +
+            " | total=" +
+            numericTotal.toFixed(2) +
+            ", avg=" +
+            numericAvg.toFixed(2)
+        );
+      } else {
+        console.log("#" + consumedCount + ": " + String(value));
       }
 
-      count++;
+      if (iterationDelaySeconds > 0) {
+        await new Promise(function (resolve) {
+          setTimeout(resolve, iterationDelaySeconds * 1000);
+        });
+      }
     }
 
-    return count;
+    return consumedCount;
   },
 
-  // Create a simple range generator for testing
-  range: function (start, end) {
-    var current = start;
-    return {
-      next: function () {
-        if (current >= end) {
-          return { done: true, value: null };
-        }
-        var value = current;
-        current++;
-        return { done: false, value: value };
-      },
-    };
+  roundRobin: function* (list) {
+    var i = 0;
+    while (Array.isArray(list) && list.length > 0) {
+      yield list[i % list.length];
+      i += 1;
+    }
   },
 };

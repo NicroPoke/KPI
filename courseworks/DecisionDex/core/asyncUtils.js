@@ -1,95 +1,121 @@
-// Task 5: Async Array Function (map)
+function AbortError(message) {
+  this.name = "AbortError";
+  this.message = message || "async_map aborted";
+}
+AbortError.prototype = Object.create(Error.prototype);
+
+function AbortSignal() {
+  this.aborted = false;
+  this._listeners = [];
+}
+AbortSignal.prototype.addEventListener = function (eventName, callback) {
+  if (eventName !== "abort") {
+    return;
+  }
+  this._listeners.push(callback);
+};
+AbortSignal.prototype.removeEventListener = function (eventName, callback) {
+  if (eventName !== "abort") {
+    return;
+  }
+  this._listeners = this._listeners.filter(function (cb) {
+    return cb !== callback;
+  });
+};
+AbortSignal.prototype._dispatchAbort = function () {
+  this._listeners.slice().forEach(function (callback) {
+    callback();
+  });
+};
+
+function AbortControllerSimple() {
+  this.signal = new AbortSignal();
+}
+AbortControllerSimple.prototype.abort = function () {
+  if (this.signal.aborted) {
+    return;
+  }
+  this.signal.aborted = true;
+  this.signal._dispatchAbort();
+};
 
 var AsyncUtils = {
-  // Async map with callback
-  asyncMapCallback: function (arr, fn, callback) {
-    var results = [];
-    var completed = 0;
-    var total = arr.length;
+  AbortError: AbortError,
+  AbortSignal: AbortSignal,
+  AbortController: AbortControllerSimple,
 
-    if (total === 0) {
-      callback(null, results);
-      return;
+  _mapWorker: async function (items, mapper, delayMs, signal) {
+    var result = [];
+    var i;
+    for (i = 0; i < items.length; i++) {
+      if (signal && signal.aborted) {
+        throw new AbortError("async_map aborted");
+      }
+      if (delayMs > 0) {
+        await new Promise(function (resolve) {
+          setTimeout(resolve, delayMs);
+        });
+      }
+      if (signal && signal.aborted) {
+        throw new AbortError("async_map aborted");
+      }
+      result.push(mapper(items[i]));
+    }
+    return result;
+  },
+
+  asyncMapCallback: function (items, mapper, callback, delayMs, signal) {
+    delayMs = delayMs || 0;
+    var onAbort = function () {};
+
+    if (signal) {
+      onAbort = function () {};
+      signal.addEventListener("abort", onAbort);
+      if (signal.aborted) {
+        signal.removeEventListener("abort", onAbort);
+        callback(new AbortError("async_map aborted"), null);
+        return null;
+      }
     }
 
-    arr.forEach(function (item, index) {
-      var promise = Promise.resolve(fn(item, index));
-      promise
-        .then(function (result) {
-          results[index] = result;
-          completed++;
-          if (completed === total) {
-            callback(null, results);
-          }
-        })
-        .catch(function (error) {
-          callback(error, null);
-        });
-    });
-  },
-
-  // Async map returning a Promise
-  asyncMapPromise: function (arr, fn) {
-    return Promise.all(
-      arr.map(function (item, index) {
-        return Promise.resolve(fn(item, index));
-      })
-    );
-  },
-
-  // Async map with AbortController support
-  asyncMapAbortable: function (arr, fn, abortSignal) {
-    return new Promise(function (resolve, reject) {
-      var results = [];
-      var completed = 0;
-      var total = arr.length;
-
-      if (total === 0) {
-        resolve(results);
-        return;
-      }
-
-      var onAbort = function () {
-        reject(new Error("Operation aborted"));
-      };
-
-      if (abortSignal) {
-        if (abortSignal.aborted) {
-          reject(new Error("Operation aborted"));
-          return;
+    (async function () {
+      try {
+        var values = await AsyncUtils._mapWorker(items, mapper, delayMs, signal);
+        callback(null, values);
+      } catch (err) {
+        callback(err, null);
+      } finally {
+        if (signal) {
+          signal.removeEventListener("abort", onAbort);
         }
-        abortSignal.addEventListener("abort", onAbort);
       }
+    })();
 
-      arr.forEach(function (item, index) {
-        var promise = Promise.resolve(fn(item, index));
-        promise
-          .then(function (result) {
-            if (!abortSignal || !abortSignal.aborted) {
-              results[index] = result;
-              completed++;
-              if (completed === total) {
-                if (abortSignal) {
-                  abortSignal.removeEventListener("abort", onAbort);
-                }
-                resolve(results);
-              }
-            }
-          })
-          .catch(function (error) {
-            if (abortSignal) {
-              abortSignal.removeEventListener("abort", onAbort);
-            }
-            reject(error);
-          });
-      });
-    });
+    return true;
   },
 
-  // Simple async delay utility
-  delay: function (ms) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve, ms);
-    });
+  asyncMapPromise: function (items, mapper, delayMs, signal) {
+    delayMs = delayMs || 0;
+    var onAbort = function () {};
+
+    if (signal && signal.aborted) {
+      return Promise.reject(new AbortError("async_map aborted"));
+    }
+
+    var promise = AsyncUtils._mapWorker(items, mapper, delayMs, signal);
+
+    if (signal) {
+      onAbort = function () {};
+      signal.addEventListener("abort", onAbort);
+      promise = promise.finally(function () {
+        signal.removeEventListener("abort", onAbort);
+      });
+    }
+
+    return promise;
+  },
+
+  asyncMapAwait: async function (items, mapper, delayMs, signal) {
+    return AsyncUtils.asyncMapPromise(items, mapper, delayMs, signal);
   },
 };
