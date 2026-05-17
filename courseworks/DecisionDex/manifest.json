@@ -1,11 +1,23 @@
 {
   "manifest_version": 3,
   "name": "DecisionDex",
+  "short_name": "DecisionDex",
   "description": "DecisionDex extension for Opera (Chromium).",
   "version": "0.1.0",
+  "homepage_url": "https://github.com/NicroPoke/KPI",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
   "action": {
     "default_title": "DecisionDex",
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -17,12 +29,14 @@
     "scripting"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://play.pokemonshowdown.com/*",
+    "https://pokemonshowdown.com/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "https://play.pokemonshowdown.com/*",
+        "https://pokemonshowdown.com/*"
       ],
       "js": [
         "core/dataContract.js",
@@ -40,5 +54,6 @@
         "content.js"
       ]
     }
-  ]
+  ],
+  "minimum_chrome_version": "114"
 }

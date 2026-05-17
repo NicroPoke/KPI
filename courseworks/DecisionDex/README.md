@@ -259,20 +259,105 @@ The interface must support toggling visibility, refreshing the analysis, and rec
 
 The final project must include a GitHub repository, a working extension, a demo project, documentation, and example outputs.
 
+## Input Format Example
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "kind": "battle-state",
+  "format": "gen9ou",
+  "source": "content-script",
+  "capturedAt": "2026-05-17T18:30:00.000Z",
+  "state": {
+    "side": {
+      "player": [
+        { "name": "Garchomp", "id": "garchomp", "sprite": "...", "slotIndex": 0, "source": "player" }
+      ],
+      "opponent": [
+        { "name": "Ting-Lu", "id": "tinglu", "sprite": "...", "slotIndex": 0, "source": "opponent" }
+      ]
+    },
+    "flags": {
+      "live": true,
+      "battleActive": true
+    }
+  },
+  "metadata": {
+    "roomId": "battle-gen9ou-123456",
+    "battleId": "gen9ou-123456",
+    "sourceTabId": 17
+  }
+}
+```
+
+## Output Format Example
+
+```json
+{
+  "ok": true,
+  "generatedAt": "2026-05-17T18:30:00.000Z",
+  "recommendedLead": {
+    "name": "Great Tusk",
+    "id": "greattusk",
+    "sprite": "...",
+    "score": 30.17,
+    "reasoning": [
+      "Strong type pressure into likely opposing leads",
+      "Reliable hazard setup or hazard control value"
+    ]
+  },
+  "ranking": [
+    {
+      "name": "Great Tusk",
+      "id": "greattusk",
+      "score": 30.17,
+      "breakdown": {
+        "typeAdvantageScore": 8.43,
+        "speedControlScore": 3.6,
+        "hazardScore": 8,
+        "antiLeadScore": 2,
+        "bulkSurvivabilityScore": 5.14,
+        "utilityScore": 3
+      },
+      "reasoning": [
+        "Strong type pressure into likely opposing leads"
+      ]
+    }
+  ],
+  "predictedOpponentLeads": [
+    { "name": "Ting-Lu", "id": "tinglu", "score": 41.33 }
+  ]
+}
+```
+
+## Run and Validate
+
+```bash
+npm run lint
+npm test
+npm run check
+npm run demo
+```
+
+`npm run demo` prints the path to the local interactive demo page in `example/index.html`.
+
 ## Quick Start in Opera
 
 1. Open opera://extensions.
 2. Enable Developer mode.
 3. Click Load unpacked.
 4. Select the project folder.
-5. Open the extension popup and run the check or analysis action.
+5. Open https://play.pokemonshowdown.com/ and start or join a battle room.
+6. Open the extension popup and run analysis.
 
-## Next Development Steps
+## Debug Checklist
 
-- add icons and the icons field in manifest.json;
-- narrow matches and host_permissions to the target domain;
-- connect the team extraction logic for Pokemon Showdown;
-- implement the core scoring engine and static meta datasets;
-- connect popup, background, and content script through message passing;
-- prepare the example project and the input format documentation;
-- add test scenarios for scoring, memoization, priority queueing, and async utilities.
+- If popup shows `No Pokemon Showdown tab was found`, check that a Showdown tab is open in the same browser profile.
+- If team cards are empty, verify current Showdown DOM still matches selector assumptions in `content.js`.
+- If recommendation fails, run `npm test` to verify core loading and deterministic scoring.
+
+## Known Issues
+
+- Team extraction still depends on current Pokemon Showdown DOM classes and may need updates after upstream UI changes.
+- The extension currently targets Showdown hostnames only and does not support mirror domains.
+- Icons are placeholders and should be replaced with production assets before release.

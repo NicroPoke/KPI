@@ -4,10 +4,23 @@
   "description": "DecisionDex extension for Opera (Chromium engine, Manifest V3).",
   "main": "background.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "node scripts/syntax-check.js",
+    "test": "node scripts/smoke-test.js",
+    "demo": "node scripts/demo.js",
+    "check": "npm run lint && npm run test"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "pokemon-showdown",
+    "chrome-extension",
+    "manifest-v3",
+    "rule-based"
+  ],
+  "author": "DecisionDex",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "homepage": "https://github.com/NicroPoke/KPI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NicroPoke/KPI.git"
+  }
 }
