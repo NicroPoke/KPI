@@ -1,4 +1,5 @@
 importScripts("core/dataContract.js");
+importScripts("core/metaData.js");
 importScripts("core/generator.js");
 importScripts("core/memoization.js");
 importScripts("core/priorityQueue.js");

@@ -26,6 +26,7 @@
       ],
       "js": [
         "core/dataContract.js",
+        "core/metaData.js",
         "core/generator.js",
         "core/memoization.js",
         "core/priorityQueue.js",

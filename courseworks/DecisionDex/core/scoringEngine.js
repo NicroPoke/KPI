@@ -1,38 +1,7 @@
 var ScoringEngine = (function () {
-  var typeChart = {
-    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
-    fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
-    water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
-    electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
-    grass: { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
-    ice: { fire: 0.5, water: 0.5, grass: 2, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
-    fighting: { normal: 2, ice: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: 0.5 },
-    poison: { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
-    ground: { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
-    flying: { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
-    psychic: { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
-    bug: { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
-    rock: { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
-    ghost: { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
-    dragon: { dragon: 2, steel: 0.5, fairy: 0 },
-    dark: { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
-    steel: { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, fairy: 2, steel: 0.5 },
-    fairy: { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 },
-  };
-
-  var dex = {
-    garchomp: { types: ["dragon", "ground"], speed: 102, hp: 108, def: 95, spd: 85, roles: ["hazard", "breaker"], moves: ["stealthrock", "earthquake", "dragontail"] },
-    dragapult: { types: ["dragon", "ghost"], speed: 142, hp: 88, def: 75, spd: 75, roles: ["pivot", "fast"], moves: ["uturn", "shadowball", "dracometeor"] },
-    landorustherian: { types: ["ground", "flying"], speed: 91, hp: 89, def: 90, spd: 80, roles: ["hazard", "pivot"], moves: ["stealthrock", "uturn", "earthquake"] },
-    greattusk: { types: ["ground", "fighting"], speed: 87, hp: 115, def: 131, spd: 53, roles: ["hazard", "removal"], moves: ["rapidspin", "stealthrock", "earthquake"] },
-    kingambit: { types: ["dark", "steel"], speed: 50, hp: 100, def: 120, spd: 85, roles: ["sweeper"], moves: ["suckerpunch", "kowtowcleave"] },
-    gliscor: { types: ["ground", "flying"], speed: 95, hp: 75, def: 125, spd: 75, roles: ["hazard", "utility"], moves: ["stealthrock", "taunt", "toxic"] },
-    corviknight: { types: ["flying", "steel"], speed: 67, hp: 98, def: 105, spd: 85, roles: ["removal", "pivot"], moves: ["defog", "uturn", "roost"] },
-    rotomwash: { types: ["electric", "water"], speed: 86, hp: 50, def: 107, spd: 107, roles: ["pivot", "utility"], moves: ["voltswitch", "hydropump", "willowisp"] },
-    ironvaliant: { types: ["fairy", "fighting"], speed: 116, hp: 74, def: 90, spd: 60, roles: ["breaker", "fast"], moves: ["moonblast", "closecombat"] },
-    samurotthisui: { types: ["water", "dark"], speed: 85, hp: 90, def: 80, spd: 65, roles: ["hazard"], moves: ["ceaselessedge", "aquajet"] },
-    tinglu: { types: ["dark", "ground"], speed: 45, hp: 155, def: 125, spd: 80, roles: ["hazard", "tank"], moves: ["stealthrock", "spikes", "ruination"] },
-    clefable: { types: ["fairy"], speed: 60, hp: 95, def: 73, spd: 90, roles: ["utility"], moves: ["thunderwave", "moonblast", "softboiled"] },
+  var metaData = typeof DecisionDexMetaData !== "undefined" ? DecisionDexMetaData : {};
+  var typeChart = metaData.typeChart || {};
+  var dex = metaData.pokemonDex || {
     unknown: { types: ["normal"], speed: 80, hp: 80, def: 80, spd: 80, roles: [], moves: [] },
   };
 
