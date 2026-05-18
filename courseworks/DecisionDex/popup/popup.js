@@ -13,6 +13,10 @@ if (!contract) {
   throw new Error("DecisionDexContract is not available in the popup.");
 }
 
+const toggleAutoWatchBtn = document.getElementById("toggleAutoWatch");
+const refreshBtn = document.getElementById("refreshBtn");
+let autoWatchEnabled = true;
+
 function setStatus(message, isError = false) {
   statusNode.textContent = message;
   statusNode.classList.toggle("is-error", isError);
@@ -154,7 +158,11 @@ async function scanBattle() {
       setStatus((recommendationResponse && recommendationResponse.error) || "Recommendation unavailable", true);
     }
 
-    await requestBackground({ type: contract.MESSAGE_TYPES.ENABLE_AUTO_BATTLE_WATCH });
+    if (autoWatchEnabled) {
+      await requestBackground({ type: contract.MESSAGE_TYPES.ENABLE_AUTO_BATTLE_WATCH });
+    } else {
+      await requestBackground({ type: contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH });
+    }
   } catch (error) {
     setStatus("Showdown tab required", true);
   }
@@ -162,13 +170,36 @@ async function scanBattle() {
 
 async function disableAutoWatchOnClose() {
   try {
-    await requestBackground({ type: contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH });
+    if (autoWatchEnabled) {
+      await requestBackground({ type: contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH });
+    }
   } catch (error) {
   }
 }
 
 window.addEventListener("beforeunload", () => {
   disableAutoWatchOnClose();
+});
+
+toggleAutoWatchBtn.addEventListener("click", async () => {
+  autoWatchEnabled = !autoWatchEnabled;
+  toggleAutoWatchBtn.textContent = `Auto: ${autoWatchEnabled ? "On" : "Off"}`;
+  try {
+    if (autoWatchEnabled) {
+      await requestBackground({ type: contract.MESSAGE_TYPES.ENABLE_AUTO_BATTLE_WATCH });
+      setStatus("Auto watch enabled");
+    } else {
+      await requestBackground({ type: contract.MESSAGE_TYPES.DISABLE_AUTO_BATTLE_WATCH });
+      setStatus("Auto watch disabled");
+    }
+  } catch (e) {
+    setStatus("Failed to toggle auto watch", true);
+  }
+});
+
+refreshBtn.addEventListener("click", async () => {
+  setStatus("Refreshing...");
+  await scanBattle();
 });
 
 scanBattle();

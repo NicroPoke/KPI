@@ -13,25 +13,50 @@ if (!window.__decisionDexContentLoaded) {
 	let liveTimer = null;
 
 	function getPokemonNameFromIcon(iconNode) {
+		const tooltip =
+			iconNode.getAttribute("data-tooltip") ||
+			iconNode.getAttribute("data-original-title") ||
+			iconNode.getAttribute("data-tip") ||
+			"";
+		const tooltipName = tooltip
+			.split("|")
+			.map((part) => contract.cleanName(part))
+			.find((part) => part && part !== "Unknown");
+
+		const directAlt = iconNode.tagName === "IMG" ? iconNode.getAttribute("alt") : null;
 		const label =
 			iconNode.getAttribute("aria-label") ||
 			iconNode.getAttribute("title") ||
 			iconNode.getAttribute("data-name") ||
+			tooltipName ||
+			directAlt ||
 			iconNode.querySelector("img")?.getAttribute("alt") ||
 			iconNode.textContent ||
 			"";
 
-		return contract.normalizePokemonName(label);
+		return contract.cleanName(label);
 	}
 
-	function extractTeam(selector) {
-		const iconNodes = Array.from(document.querySelectorAll(selector));
+	function extractTeam(selectorOrContainer) {
+		let iconNodes = [];
 		const seen = new Set();
 		const team = [];
 
+		if (typeof selectorOrContainer === "string") {
+			iconNodes = Array.from(document.querySelectorAll(selectorOrContainer));
+		} else if (selectorOrContainer instanceof Element) {
+			iconNodes = Array.from(
+				selectorOrContainer.querySelectorAll(
+					".teamicons .picon, .teamicons .pokemonicon, .teamicons [data-tooltip], .has-tooltip[data-tooltip], .switchmenu button .picon, .switchmenu button [data-tooltip], img[alt], [data-name]"
+				)
+			);
+		} else {
+			iconNodes = Array.from(document.querySelectorAll(".picon, .pokemonicon, [data-tooltip], img[alt], [data-name]"));
+		}
+
 		for (const iconNode of iconNodes) {
 			const name = getPokemonNameFromIcon(iconNode);
-			const id = contract.toPokemonId(name);
+			const id = contract.makeId(name);
 
 			if (!id || seen.has(id)) {
 				continue;
@@ -56,33 +81,103 @@ if (!window.__decisionDexContentLoaded) {
 	}
 
 	function getBattleRoot() {
-		return document.querySelector(".battle, .battle-log, .ps-room-opaque");
+		const candidates = [
+			".battle",
+			".battle-log",
+			".ps-room-opaque",
+			"#battle",
+			".room.battle",
+			"[data-roomid]",
+		];
+
+		for (const sel of candidates) {
+			const node = document.querySelector(sel);
+			if (node) return node;
+		}
+
+		const heuristic = document.querySelector(".teamicons, .picon, .pokemonicon");
+		if (heuristic) return heuristic.closest(".battle") || heuristic.closest(".room") || document.body;
+
+		return null;
 	}
 
 	function getBattleTeams() {
-		if (!getBattleRoot()) {
+		const root = getBattleRoot();
+		if (!root) {
 			return {
 				ok: false,
 				error: "Waiting for a Pokemon Showdown battle to start.",
 			};
 		}
 
-		const myTeam = extractTeam(
-			".trainer-near .teamicons .picon, .trainer-near .teamicons .pokemonicon, .trainer-near .teamicons span, .switchmenu button .picon"
-		);
-		const enemyTeam = extractTeam(
-			".trainer-far .teamicons .picon, .trainer-far .teamicons .pokemonicon, .trainer-far .teamicons span"
-		);
+		const myContainer = root.querySelector('.trainer-near') || root.querySelector('.p1') || root;
+		const enemyContainer = root.querySelector('.trainer-far') || root.querySelector('.p2') || root;
+
+		const myTeam = extractTeam(myContainer);
+		const enemyTeam = extractTeam(enemyContainer);
+
+		function isUnknownTeam(team) {
+			return !team || !team.length || team.every((p) => !p || !p.id || p.id === "unknown");
+		}
+
+		function parseTeamsFromText() {
+			const text = [
+				root?.textContent || "",
+				document.querySelector(".battle-log")?.textContent || "",
+				document.body?.textContent || "",
+			]
+				.join(" ")
+				.replace(/\s+/g, " ");
+			const teamRegex = /(?:^|\s)([^:]{1,40})'s team:\s*([^\n\r]+?)(?=(?:\s[^:]{1,40}'s team:|$))/gi;
+			const parsedTeams = [];
+
+			let match;
+			while ((match = teamRegex.exec(text)) && parsedTeams.length < 2) {
+				const rawList = String(match[2] || "")
+					.split("/")
+					.map((s) => contract.cleanName(s))
+					.filter(Boolean)
+					.slice(0, 6)
+					.map((name) => ({
+						name,
+						sprite: `${contract.SHOWDOWN_SPRITES_BASE}/${contract.makeId(name)}.png`,
+					}));
+
+				if (rawList.length > 0) {
+					parsedTeams.push(contract.normalizeTeam(rawList, "unknown"));
+				}
+			}
+
+			if (parsedTeams.length >= 2) {
+				return {
+					my: parsedTeams[0],
+					enemy: parsedTeams[1],
+				};
+			}
+
+			return null;
+		}
+
+		let finalMyTeam = myTeam;
+		let finalEnemyTeam = enemyTeam;
+
+		if (isUnknownTeam(myTeam) || isUnknownTeam(enemyTeam)) {
+			const parsed = parseTeamsFromText();
+			if (parsed) {
+				finalMyTeam = parsed.my;
+				finalEnemyTeam = parsed.enemy;
+			}
+		}
 
 		return {
 			ok: true,
 			payload: contract.buildBattlePayload({
-				myTeam,
-				enemyTeam,
+				myTeam: finalMyTeam,
+				enemyTeam: finalEnemyTeam,
 				format: "unknown",
 				source: "content-script",
 				live: Boolean(liveObserver),
-				battleActive: true,
+				battleActive: Boolean(finalMyTeam && finalMyTeam.length && finalEnemyTeam && finalEnemyTeam.length),
 				capturedAt: new Date().toISOString(),
 			}),
 		};
