@@ -1,0 +1,6 @@
+{
+  "name": "decisiondex-core",
+  "version": "0.1.0",
+  "main": "node-entry.js",
+  "type": "commonjs"
+}

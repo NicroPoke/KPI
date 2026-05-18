@@ -209,7 +209,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sourceTabId: sender?.tab?.id ?? null,
     };
 
-    chrome.runtime.sendMessage(payload);
+    chrome.runtime.sendMessage(payload, () => {
+      void chrome.runtime.lastError;
+    });
     sendResponse({ ok: true });
     return true;
   }

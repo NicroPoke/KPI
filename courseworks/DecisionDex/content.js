@@ -92,6 +92,8 @@ if (!window.__decisionDexContentLoaded) {
 		chrome.runtime.sendMessage({
 			type: contract.MESSAGE_TYPES.LIVE_BATTLE_TEAMS_UPDATE,
 			payload: getBattleTeams(),
+		}, () => {
+			void chrome.runtime.lastError;
 		});
 	}
 

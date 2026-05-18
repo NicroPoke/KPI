@@ -1,0 +1,13 @@
+{
+  "name": "decisiondex-example",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local dependency demo for DecisionDex core modules.",
+  "main": "demo-node.js",
+  "scripts": {
+    "demo": "node demo-node.js"
+  },
+  "dependencies": {
+    "decisiondex-core": "file:../core"
+  }
+}
