@@ -43,4 +43,43 @@ Scoring summary
 - Scores are aggregated against likely opponent leads; the highest total is recommended.
 - Reasons are generated from metric thresholds.
 
+Labs Overview
+--------------
+
+**Lab 1 - Generators and Iterators**
+- File: [core/generator.js](core/generator.js)
+- Usage: Used by `core/streamProcessor.js` for creating infinite sequences and processing values with timeout mechanisms.
+
+**Lab 2 - Project Setup**
+- Files: `package.json`, `pyproject.toml`, `core/package.json`
+- Usage: Project structure with local dependencies linking, git initialization, and library organization.
+
+**Lab 3 - Memoization Function**
+- File: [core/memoization.js](core/memoization.js)
+- Usage: Wraps pure functions to cache results; used throughout core modules to optimize repeated calculations in scoring engine.
+
+**Lab 4 - Bi-Directional Priority Queue**
+- File: [core/priorityQueue.js](core/priorityQueue.js)
+- Usage: Implements efficient priority-based element retrieval; used in `core/scoringEngine.js` for ranking Pokémon candidates.
+
+**Lab 5 - Async Array Function Variants**
+- File: [core/asyncUtils.js](core/asyncUtils.js)
+- Usage: Provides callback-based and Promise-based async array operations; used for handling async battle team processing and score aggregation.
+
+**Lab 6 - Large Data Processing with Streams/Async Iterators**
+- File: [core/streamProcessor.js](core/streamProcessor.js)
+- Usage: Processes large battle datasets incrementally; consumed by `background.js` for live battle monitoring with MutationObserver.
+
+**Lab 7 - Reactive Communication with Observables/EventEmitters**
+- File: [core/events.js](core/events.js)
+- Usage: Implements event-driven communication; used for inter-module messaging (GET_BATTLE_TEAMS, LIVE_BATTLE_TEAMS_UPDATE) and popup-background coordination.
+
+**Lab 8 - Authentication Proxy for API Service**
+- File: [core/authProxy.js](core/authProxy.js)
+- Usage: Intercepts and injects authentication headers; used by extension to authenticate API requests and handle token renewal for external services.
+
+**Lab 9 - Logging Decorator with Configurable Log Levels**
+- File: [core/logger.js](core/logger.js)
+- Usage: Decorates functions with INFO/DEBUG/ERROR logging; used throughout core modules for request/response logging and execution profiling.
+
 
